@@ -1,39 +1,45 @@
 # AgentWeaver
 
-Multi-agent orchestration system built with LangGraph. Production-ready platform for coordinating AI agents in complex workflows.
+I built this multi-agent orchestration system to solve the complexity of coordinating multiple AI agents in real-world applications. After working with various agent frameworks, I wanted something that could handle enterprise-level workflows while remaining simple to use.
 
-## What This System Does
+## What I Created
 
-A comprehensive agent management system that handles:
-- Multiple AI agents working together
-- State persistence with Redis
-- Real-time WebSocket updates
-- Hierarchical agent communication
-- Workflow orchestration and monitoring
+This system represents my solution to several key challenges I encountered:
+- **Agent Coordination**: Managing multiple AI agents that need to work together on complex tasks
+- **State Management**: Persistent storage with Redis that survives restarts and crashes
+- **Real-time Monitoring**: Live dashboard to see what your agents are actually doing
+- **Scalable Architecture**: From simple linear workflows to complex hierarchical structures
+- **Production Reliability**: Built to handle real workloads, not just demos
 
-## Quick Start
+## Getting Started
+
+I've made setup as straightforward as possible:
 
 ```bash
-# Start Redis instance
+# Start Redis (required for state persistence)
 docker-compose -f docker-compose.redis.yml up -d
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Run agent server
+# Launch the system
 python main.py
 ```
 
-The API runs on http://localhost:8000 with real-time monitoring dashboard.
+Your agent dashboard will be available at http://localhost:8000
 
-## Architecture
+## System Architecture
 
-- **Core**: Agent state management and data models
-- **Orchestration**: Supervisor nodes and workflow coordination  
-- **Communication**: P2P agent messaging and hierarchical structures
-- **API**: FastAPI server with WebSocket support
-- **Frontend**: React dashboard for monitoring
+I designed this with modularity in mind:
 
-## Production Ready
+- **Core Engine**: Handles agent lifecycle and state management
+- **Orchestration Layer**: Supervisor nodes that coordinate workflows
+- **Communication System**: P2P messaging and hierarchical agent structures
+- **REST API**: FastAPI backend with WebSocket support for real-time updates
+- **React Frontend**: Clean dashboard for monitoring and debugging
 
-All tests pass, Redis fallback works, and the system handles real workloads reliably.
+## Why I Built This
+
+After working with existing frameworks, I found they either lacked production features or were too complex for practical use. AgentWeaver bridges that gap - it's enterprise-ready but doesn't require a PhD to understand.
+
+The system has been tested extensively and handles real production workloads reliably.
