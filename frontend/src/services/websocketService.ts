@@ -73,18 +73,29 @@ export class WebSocketService {
       heartbeatInterval: 30000,
       ...config
     };
+    
+    console.log(`🚀 WebSocketService constructor: status initialized as "${this.connectionStatus}"`);
+    console.log(`   Config:`, this.config);
   }
 
   public connect(): void {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      console.log('WebSocket already connected');
-      return;
+    // Prevent multiple connections
+    if (this.ws) {
+      if (this.ws.readyState === WebSocket.OPEN) {
+        console.log('WebSocket already connected');
+        return;
+      } else if (this.ws.readyState === WebSocket.CONNECTING) {
+        console.log('WebSocket already connecting');
+        return;
+      }
     }
 
     this.setConnectionStatus(WebSocketConnectionStatus.CONNECTING);
+    console.log(`Attempting to connect to WebSocket: ${this.config.url}`);
     
     try {
       this.ws = new WebSocket(this.config.url);
+      console.log('WebSocket instance created, setting up event listeners...');
       this.setupEventListeners();
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error);
@@ -130,13 +141,16 @@ export class WebSocketService {
   }
 
   public onStatusChange(id: string, handler: (status: WebSocketConnectionStatus) => void): () => void {
+    console.log(`📋 Registering status handler '${id}' (current status: ${this.connectionStatus})`);
     this.statusHandlers.set(id, handler);
     
     // Immediately call with current status
+    console.log(`   Immediately calling handler '${id}' with status: ${this.connectionStatus}`);
     handler(this.connectionStatus);
     
     // Return unsubscribe function
     return () => {
+      console.log(`🗑️ Unregistering status handler '${id}'`);
       this.statusHandlers.delete(id);
     };
   }
@@ -153,14 +167,20 @@ export class WebSocketService {
     if (!this.ws) return;
 
     this.ws.onopen = () => {
-      console.log('WebSocket connected successfully');
+      console.log('✅ WebSocket onopen event fired!');
+      console.log('   Connected to:', this.config.url);
+      console.log('   WebSocket readyState:', this.ws?.readyState);
+      console.log('   Previous status:', this.connectionStatus);
       this.reconnectAttempts = 0;
       this.setConnectionStatus(WebSocketConnectionStatus.CONNECTED);
       this.startHeartbeat();
+      console.log('   Status handlers count:', this.statusHandlers.size);
+      console.log('   New status should be:', WebSocketConnectionStatus.CONNECTED);
     };
 
     this.ws.onclose = (event) => {
-      console.log('WebSocket connection closed:', event.code, event.reason);
+      console.log('❌ WebSocket connection closed:', event.code, event.reason);
+      console.log('Close event details:', { code: event.code, reason: event.reason, wasClean: event.wasClean });
       this.clearHeartbeat();
       
       if (event.code !== 1000) { // Not a normal closure
@@ -172,7 +192,8 @@ export class WebSocketService {
     };
 
     this.ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      console.error('❌ WebSocket error occurred:', error);
+      console.log('WebSocket readyState:', this.ws?.readyState);
       this.setConnectionStatus(WebSocketConnectionStatus.ERROR);
     };
 
@@ -202,17 +223,22 @@ export class WebSocketService {
 
   private setConnectionStatus(status: WebSocketConnectionStatus): void {
     if (this.connectionStatus !== status) {
+      const oldStatus = this.connectionStatus;
       this.connectionStatus = status;
-      console.log('WebSocket status changed to:', status);
+      console.log(`🔄 WebSocket status changed: ${oldStatus} → ${status}`);
+      console.log(`   Current handlers: ${this.statusHandlers.size}`);
       
       // Notify all status handlers
-      this.statusHandlers.forEach((handler) => {
+      this.statusHandlers.forEach((handler, id) => {
         try {
+          console.log(`   Notifying handler '${id}' of status change to: ${status}`);
           handler(status);
         } catch (error) {
-          console.error('Error in status handler:', error);
+          console.error(`   Error in status handler '${id}':`, error);
         }
       });
+    } else {
+      console.log(`⚡ WebSocket status unchanged: ${status} (not notifying handlers)`);
     }
   }
 
@@ -263,5 +289,5 @@ export class WebSocketService {
 
 // Default WebSocket service instance
 export const defaultWebSocketService = new WebSocketService({
-  url: 'ws://localhost:8000/ws'
+  url: 'ws://localhost:8000/ws/updates'
 });

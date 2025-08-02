@@ -1,10 +1,11 @@
-import { StrictMode } from 'react'
+// import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  // Temporarily disable StrictMode to fix WebSocket connection issues in development
+  // <StrictMode>
     <App />
-  </StrictMode>,
+  // </StrictMode>
 )

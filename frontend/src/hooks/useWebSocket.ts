@@ -30,9 +30,15 @@ export const useWebSocket = (options: UseWebSocketOptions = {}): UseWebSocketRet
     onStatusChange
   } = options;
 
-  const [connectionStatus, setConnectionStatus] = useState<WebSocketConnectionStatus>(
-    service.getConnectionStatus()
-  );
+  // Generate unique handler ID to prevent conflicts
+  const handlerIdRef = useRef(`react-hook-${Math.random().toString(36).substr(2, 9)}`);
+  const handlerId = handlerIdRef.current;
+
+  const [connectionStatus, setConnectionStatus] = useState<WebSocketConnectionStatus>(() => {
+    const initialStatus = service.getConnectionStatus();
+    console.log(`🚀 useWebSocket initializing with status: ${initialStatus}`);
+    return initialStatus;
+  });
   const [lastMessage, setLastMessage] = useState<AllWebSocketMessages | null>(null);
   
   // Use refs to avoid stale closures in effect dependencies
@@ -50,37 +56,57 @@ export const useWebSocket = (options: UseWebSocketOptions = {}): UseWebSocketRet
 
   // Handle connection status changes
   useEffect(() => {
-    const unsubscribe = service.onStatusChange('react-hook', (status) => {
-      setConnectionStatus(status);
+    console.log(`🔗 Setting up WebSocket status change handler (${handlerId})`);
+    const unsubscribe = service.onStatusChange(handlerId, (status) => {
+      console.log(`🎯 React hook (${handlerId}) received status change: ${status}`);
+      console.log(`   Previous React state: ${connectionStatus}`);
+      setConnectionStatus(prevStatus => {
+        console.log(`   Updating React state: ${prevStatus} → ${status}`);
+        return status;
+      });
       onStatusChangeRef.current?.(status);
     });
 
     return unsubscribe;
-  }, [service]);
+  }, [service, handlerId]);
 
   // Handle incoming messages
   useEffect(() => {
-    const unsubscribe = service.onMessage('react-hook', (message) => {
+    const unsubscribe = service.onMessage(handlerId, (message) => {
       setLastMessage(message);
       onMessageRef.current?.(message);
     });
 
     return unsubscribe;
-  }, [service]);
+  }, [service, handlerId]);
 
-  // Auto-connect on mount if enabled
+  // Auto-connect on mount if enabled (only once)
   useEffect(() => {
-    if (autoConnect && connectionStatus === WebSocketConnectionStatus.DISCONNECTED) {
-      service.connect();
+    let isActive = true; // Track if component is still mounted
+    
+    if (autoConnect) {
+      // Only connect if we're disconnected and not already connecting
+      const currentStatus = service.getConnectionStatus();
+      console.log(`🚀 Auto-connect check: current status = "${currentStatus}"`);
+      
+      if (currentStatus === WebSocketConnectionStatus.DISCONNECTED && isActive) {
+        console.log('Auto-connecting WebSocket...');
+        service.connect();
+      } else {
+        console.log(`Not auto-connecting: status is "${currentStatus}", isActive: ${isActive}`);
+      }
     }
 
     // Cleanup on unmount
     return () => {
-      if (!autoConnect) {
-        service.disconnect();
-      }
+      isActive = false;
+      // Don't disconnect in StrictMode development (it causes issues)
+      // The WebSocket service will handle connection management
+      // if (!autoConnect) {
+      //   service.disconnect();
+      // }
     };
-  }, [service, autoConnect, connectionStatus]);
+  }, [service, autoConnect]); // Keep minimal dependencies but ensure stability
 
   const connect = useCallback(() => {
     service.connect();
@@ -110,9 +136,11 @@ export const useWebSocket = (options: UseWebSocketOptions = {}): UseWebSocketRet
 export const useWorkflowUpdates = () => {
   const [workflows, setWorkflows] = useState<Map<string, any>>(new Map());
   
-  const { connectionStatus, lastMessage, ...websocketControls } = useWebSocket({
+  useWebSocket({
+    autoConnect: false, // Don't auto-connect, reuse main connection
     onMessage: (message) => {
       if (message.type === 'workflow_update') {
+        console.log('📊 Workflow update received:', message);
         const workflowMessage = message as any; // Type assertion for workflow message
         
         setWorkflows(prev => {
@@ -130,6 +158,7 @@ export const useWorkflowUpdates = () => {
             details: workflowMessage.details
           });
           
+          console.log('📊 Updated workflows:', Array.from(updated.values()));
           return updated;
         });
       }
@@ -144,10 +173,7 @@ export const useWorkflowUpdates = () => {
     workflows,
     getWorkflow,
     getAllWorkflows,
-    getActiveWorkflows,
-    connectionStatus,
-    lastMessage,
-    ...websocketControls
+    getActiveWorkflows
   };
 };
 
@@ -155,9 +181,11 @@ export const useWorkflowUpdates = () => {
 export const useAgentUpdates = () => {
   const [agents, setAgents] = useState<Map<string, any>>(new Map());
   
-  const { connectionStatus, lastMessage, ...websocketControls } = useWebSocket({
+  useWebSocket({
+    autoConnect: false, // Don't auto-connect, reuse main connection
     onMessage: (message) => {
       if (message.type === 'agent_update') {
+        console.log('🤖 Agent update received:', message);
         const agentMessage = message as any; // Type assertion for agent message
         
         setAgents(prev => {
@@ -173,6 +201,7 @@ export const useAgentUpdates = () => {
             details: agentMessage.details
           });
           
+          console.log('🤖 Updated agents:', Array.from(updated.values()));
           return updated;
         });
       }
@@ -182,17 +211,14 @@ export const useAgentUpdates = () => {
   const getAgent = (agentId: string) => agents.get(agentId);
   const getAllAgents = () => Array.from(agents.values());
   const getActiveAgents = () => Array.from(agents.values()).filter(a => 
-    ['running', 'busy', 'active'].includes(a.status?.toLowerCase())
+    ['running', 'busy', 'active'].includes((a as any).status?.toLowerCase())
   );
 
   return {
     agents,
     getAgent,
     getAllAgents,
-    getActiveAgents,
-    connectionStatus,
-    lastMessage,
-    ...websocketControls
+    getActiveAgents
   };
 };
 
@@ -201,6 +227,7 @@ export const useSystemNotifications = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   
   const { connectionStatus, lastMessage, ...websocketControls } = useWebSocket({
+    autoConnect: false, // Don't auto-connect, reuse main connection
     onMessage: (message) => {
       if (message.type === 'system_notification') {
         const notification = {

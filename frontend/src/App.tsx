@@ -1,11 +1,12 @@
 import './App.css'
 import AgentList from './components/AgentList'
 import WorkflowVisualizer from './components/WorkflowVisualizer'
+import WebSocketDebug from './components/WebSocketDebug'
 import type { Agent } from './components/AgentList'
 import type { Workflow } from './components/WorkflowVisualizer'
 import { useWebSocket, useAgentUpdates, useWorkflowUpdates } from './hooks/useWebSocket'
 import { WebSocketConnectionStatus } from './services/websocketService'
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 
 // Mock data for testing
 const mockAgents: Agent[] = [
@@ -136,10 +137,31 @@ function App() {
     }
   });
 
-  // Hook for real-time agent updates
+  // Monitor connection status changes in App component
+  useEffect(() => {
+    console.log(`🔄 App component: connectionStatus changed to "${connectionStatus}"`);
+    console.log(`   isConnected: ${isConnected}`);
+  }, [connectionStatus, isConnected]);
+
+  // Debug function to check WebSocket status
+  (window as any).debugWebSocket = () => {
+    console.log('=== WebSocket Debug Info ===');
+    console.log('Current connection status:', connectionStatus);
+    console.log('Is connected:', isConnected);
+    console.log('Last message:', lastMessage);
+    console.log('Status enum values:', WebSocketConnectionStatus);
+    console.log('Current status type:', typeof connectionStatus);
+    console.log('Current status comparison:', connectionStatus === WebSocketConnectionStatus.CONNECTED);
+    console.log('============================');
+  };
+
+  // Remove the WebSocketStatusTest since it's working now
+  // const testComponent = <WebSocketStatusTest />;
+
+  // Hook for real-time agent updates (reuse main connection)
   const { getAllAgents } = useAgentUpdates();
   
-  // Hook for real-time workflow updates
+  // Hook for real-time workflow updates (reuse main connection)  
   const { getAllWorkflows, getActiveWorkflows } = useWorkflowUpdates();
   
   // Get real-time agent data
@@ -148,6 +170,22 @@ function App() {
   // Get real-time workflow data
   const realTimeWorkflows = getAllWorkflows();
   const activeWorkflows = getActiveWorkflows();
+  
+  // Map backend status to frontend status types
+  const mapBackendStatusToFrontend = (backendStatus: string): Agent['status'] => {
+    const statusMap: Record<string, Agent['status']> = {
+      'idle': 'idle',
+      'running': 'running',
+      'busy': 'busy',
+      'active': 'running',
+      'error': 'error',
+      'failed': 'error',
+      'offline': 'offline',
+      'disconnected': 'offline'
+    };
+    
+    return statusMap[backendStatus?.toLowerCase()] || 'idle';
+  };
   
   // Merge mock workflow with real-time updates
   const currentWorkflow = useMemo(() => {
@@ -217,22 +255,6 @@ function App() {
     
     return Array.from(agentMap.values());
   }, [realTimeAgents]);
-  
-  // Map backend status to frontend status types
-  const mapBackendStatusToFrontend = (backendStatus: string): Agent['status'] => {
-    const statusMap: Record<string, Agent['status']> = {
-      'idle': 'idle',
-      'running': 'running',
-      'busy': 'busy',
-      'active': 'running',
-      'error': 'error',
-      'failed': 'error',
-      'offline': 'offline',
-      'disconnected': 'offline'
-    };
-    
-    return statusMap[backendStatus?.toLowerCase()] || 'idle';
-  };
 
   const handleAgentClick = (agent: Agent) => {
     console.log('Agent clicked:', agent);
@@ -274,6 +296,7 @@ function App() {
 
   return (
     <div className="dashboard">
+      {/* <WebSocketStatusTest /> */}
       <header className="dashboard-header">
         <h1>AgentWeaver Dashboard</h1>
         <div className="header-info">
@@ -281,7 +304,7 @@ function App() {
             className="connection-status"
             onClick={handleConnectionToggle}
             style={{ cursor: 'pointer' }}
-            title="Click to toggle connection"
+            title={`Click to toggle connection. Current: ${connectionStatus}`}
           >
             {getConnectionStatusDisplay()}
           </span>
