@@ -1,9 +1,3 @@
-"""
-Linear Workflow Demo for AgentWeaver
-
-This script demonstrates the complete linear workflow system in action,
-showcasing text analysis, API enrichment, and statistical processing.
-"""
 
 import sys
 import os
@@ -17,7 +11,6 @@ from src.linear_workflow import LinearWorkflowOrchestrator
 
 
 def run_demo_workflow():
-    """Run a comprehensive demo of the linear workflow."""
     print("🚀 AgentWeaver Linear Workflow Demo")
     print("=" * 60)
     
@@ -33,29 +26,6 @@ def run_demo_workflow():
     
     # Demo data - realistic content analysis scenario
     demo_input = {
-        "text": """
-        Customer Feedback Analysis Report
-        
-        We have collected feedback from 500 customers over the past quarter 
-        regarding our new product launch. The responses show overwhelmingly 
-        positive sentiment with customers praising the intuitive design, 
-        robust functionality, and responsive customer service.
-        
-        Key highlights from the feedback:
-        - 87% of customers rated the product as "excellent" or "very good"
-        - Users appreciate the streamlined onboarding process
-        - The mobile app received particularly strong praise
-        - Minor concerns were raised about documentation clarity
-        
-        Recommendations:
-        1. Continue current development trajectory
-        2. Invest in improving documentation
-        3. Expand mobile app features based on user suggestions
-        4. Increase customer service capacity to maintain response times
-        
-        This feedback indicates strong product-market fit and suggests 
-        our go-to-market strategy is effective.
-        """,
         "numbers": [87, 92, 89, 94, 91, 88, 95, 90, 93, 86, 89, 92],  # Customer satisfaction scores
         "metadata": {
             "source": "customer_feedback_q1_2024",
@@ -172,7 +142,6 @@ def run_demo_workflow():
 
 
 def run_error_handling_demo():
-    """Demonstrate error handling capabilities."""
     print("\n🚨 Error Handling Demo")
     print("=" * 40)
     

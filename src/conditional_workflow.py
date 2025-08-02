@@ -1,10 +1,3 @@
-"""
-Advanced Conditional Workflow Implementation for AgentWeaver.
-
-This module implements conditional routing and failure handling capabilities,
-enabling dynamic workflow paths based on content analysis and automatic
-rerouting on agent failures.
-"""
 
 from typing import Dict, Any, Optional, List, Union, Callable
 from datetime import datetime
@@ -22,12 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class ConditionalWorkflowState(BaseModel):
-    """
-    Enhanced state schema for conditional workflows with routing support.
-    
-    This extends the basic workflow state to support conditional routing,
-    agent failure detection, and dynamic path selection.
-    """
     
     # Workflow identification
     workflow_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -85,15 +72,8 @@ class ConditionalWorkflowState(BaseModel):
 
 
 class ConditionalRouter:
-    """
-    Conditional router for dynamic workflow path selection.
-    
-    This class contains the logic for analyzing workflow state and determining
-    the next node to execute based on content analysis results.
-    """
     
     def __init__(self):
-        """Initialize the conditional router."""
         self.routing_rules = {
             'sentiment_based': self._route_by_sentiment,
             'content_type_based': self._route_by_content_type,
@@ -104,16 +84,6 @@ class ConditionalRouter:
         logger.info("Conditional router initialized with routing rules")
     
     def route(self, state: Dict[str, Any], routing_type: str = 'sentiment_based') -> str:
-        """
-        Determine the next node based on state analysis.
-        
-        Args:
-            state: Current workflow state
-            routing_type: Type of routing logic to apply
-            
-        Returns:
-            String identifier for the next node to execute
-        """
         try:
             # Log routing attempt
             logger.info(f"Routing decision requested: type={routing_type}")
@@ -156,15 +126,6 @@ class ConditionalRouter:
             return "error_handler"
     
     def _route_by_sentiment(self, state: Dict[str, Any]) -> str:
-        """
-        Route based on sentiment analysis results.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Next node identifier based on sentiment
-        """
         sentiment_score = state.get("sentiment_score")
         
         # Handle missing or None sentiment score
@@ -179,15 +140,6 @@ class ConditionalRouter:
             return "neutral_sentiment_processor"
     
     def _route_by_content_type(self, state: Dict[str, Any]) -> str:
-        """
-        Route based on content type analysis.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Next node identifier based on content type
-        """
         content_type = state.get("content_type", "unknown")
         
         if content_type == "technical":
@@ -200,15 +152,6 @@ class ConditionalRouter:
             return "general_analysis_agent"
     
     def _route_by_confidence(self, state: Dict[str, Any]) -> str:
-        """
-        Route based on analysis confidence levels.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Next node identifier based on confidence
-        """
         confidence = state.get("analysis_confidence")
         
         # Handle missing or None confidence
@@ -223,15 +166,6 @@ class ConditionalRouter:
             return "manual_review_processor"
     
     def _route_by_error_status(self, state: Dict[str, Any]) -> str:
-        """
-        Route based on error conditions and failure recovery.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Next node identifier for error handling
-        """
         if state.get("failed_agent_id") and state.get("reroute_count", 0) < state.get("max_reroutes", 3):
             return "agent_failure_recovery"
         else:
@@ -239,20 +173,8 @@ class ConditionalRouter:
 
 
 class AgentFailureManager:
-    """
-    Manages agent failure detection and automatic rerouting.
-    
-    This class handles the logic for detecting agent failures,
-    finding backup agents, and rerouting tasks automatically.
-    """
     
     def __init__(self, agent_registry: Dict[str, Any]):
-        """
-        Initialize the failure manager.
-        
-        Args:
-            agent_registry: Registry of available agents by capability
-        """
         self.agent_registry = agent_registry
         self.failure_history = []
         
@@ -260,17 +182,6 @@ class AgentFailureManager:
     
     def detect_failure(self, state: Dict[str, Any], agent_id: str, 
                       exception: Exception) -> Dict[str, Any]:
-        """
-        Detect and record agent failure.
-        
-        Args:
-            state: Current workflow state
-            agent_id: ID of the failed agent
-            exception: The exception that caused the failure
-            
-        Returns:
-            Updated state with failure information
-        """
         failure_entry = {
             "timestamp": datetime.utcnow().isoformat(),
             "agent_id": agent_id,
@@ -294,15 +205,6 @@ class AgentFailureManager:
         return state
     
     def find_backup_agent(self, state: Dict[str, Any]) -> Optional[str]:
-        """
-        Find a backup agent with the required capability.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            ID of backup agent or None if none available
-        """
         required_capability = state.get("required_capability")
         failed_agent_id = state.get("failed_agent_id")
         
@@ -324,15 +226,6 @@ class AgentFailureManager:
         return None
     
     def _determine_required_capability(self, agent_id: str) -> Optional[str]:
-        """
-        Determine the required capability based on the failed agent.
-        
-        Args:
-            agent_id: ID of the failed agent
-            
-        Returns:
-            Required capability string
-        """
         # This is a simplified mapping - in practice, you'd query the agent registry
         agent_capability_map = {
             "text_analyzer": "text_analysis",
@@ -344,21 +237,8 @@ class AgentFailureManager:
 
 
 class ConditionalWorkflowOrchestrator:
-    """
-    Orchestrates conditional workflows with dynamic routing and failure handling.
-    
-    This class manages the execution of workflows that can dynamically choose
-    different paths based on content analysis and automatically recover from failures.
-    """
     
     def __init__(self, checkpointer=None, use_redis: bool = True):
-        """
-        Initialize the Conditional Workflow Orchestrator.
-        
-        Args:
-            checkpointer: Optional checkpointer for state persistence
-            use_redis: Whether to use Redis for persistent state (default: True)
-        """
         # Initialize persistent state management
         if use_redis and checkpointer is None:
             try:
@@ -385,12 +265,6 @@ class ConditionalWorkflowOrchestrator:
         logger.info("Conditional Workflow Orchestrator initialized")
     
     def _initialize_worker_agents(self) -> Dict[str, Any]:
-        """
-        Initialize the worker agents for the conditional workflow.
-        
-        Returns:
-            Dictionary of initialized worker agents
-        """
         return {
             # Primary agents
             "text_analyzer": TextAnalysisAgent("ConditionalTextAnalyzer"),
@@ -409,12 +283,6 @@ class ConditionalWorkflowOrchestrator:
         }
     
     def _build_agent_registry(self) -> Dict[str, List[str]]:
-        """
-        Build a registry of agents organized by capability.
-        
-        Returns:
-            Registry mapping capabilities to agent IDs
-        """
         return {
             "text_analysis": ["text_analyzer", "backup_text_analyzer"],
             "api_interaction": ["api_client", "backup_api_client"],
@@ -423,7 +291,6 @@ class ConditionalWorkflowOrchestrator:
         }
     
     def _setup_conditional_workflow_graph(self):
-        """Set up the conditional workflow graph with dynamic routing."""
         # Create the graph with ConditionalWorkflowState
         graph = StateGraph(dict)  # Using dict for LangGraph compatibility
         
@@ -448,7 +315,6 @@ class ConditionalWorkflowOrchestrator:
         
         # Conditional routing from content analyzer
         def route_from_content_analyzer(state: Dict[str, Any]) -> str:
-            """Route from content analyzer to conditional router or error handler."""
             if state.get("error_occurred"):
                 return "error_handler"
             return "conditional_router"
@@ -464,7 +330,6 @@ class ConditionalWorkflowOrchestrator:
         
         # Dynamic routing based on sentiment analysis
         def dynamic_sentiment_router(state: Dict[str, Any]) -> str:
-            """Dynamic router for sentiment-based workflow paths."""
             return self.router.route(state, 'sentiment_based')
         
         graph.add_conditional_edges(
@@ -485,7 +350,6 @@ class ConditionalWorkflowOrchestrator:
         
         # Route after error handler - to recovery or finalizer
         def route_after_error_handler(state: Dict[str, Any]) -> str:
-            """Decide where to route after error handling."""
             failed_agent_id = state.get("failed_agent_id")
             reroute_count = state.get("reroute_count", 0)
             max_reroutes = state.get("max_reroutes", 3)
@@ -510,7 +374,6 @@ class ConditionalWorkflowOrchestrator:
         
         # Failure recovery routing
         def route_from_recovery(state: Dict[str, Any]) -> str:
-            """Route from failure recovery back to retry with backup agent or handle final failure."""
             if state.get("backup_agent_used") and not state.get("error_occurred"):
                 # Backup agent assigned successfully, retry the failed operation
                 failed_step = state.get("error_step")
@@ -544,15 +407,6 @@ class ConditionalWorkflowOrchestrator:
         logger.info("Conditional workflow graph compiled successfully")
     
     def _supervisor_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Supervisor node for conditional workflow initialization.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Updated state with initialization
-        """
         try:
             logger.info("Supervisor: Initializing conditional workflow")
             
@@ -593,15 +447,6 @@ class ConditionalWorkflowOrchestrator:
         return state
     
     def _content_analyzer_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Content analyzer node that performs sentiment and content analysis.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Updated state with analysis results for routing
-        """
         try:
             is_retry = state.get("backup_agent_used", False) and state.get("error_step") == "content_analyzer"
             agent_type = "backup" if is_retry else "primary"
@@ -698,15 +543,6 @@ class ConditionalWorkflowOrchestrator:
         return state
     
     def _conditional_router_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Conditional router node that determines the next processing path.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Updated state with routing decision
-        """
         try:
             logger.info("Conditional Router: Determining processing path")
             state["current_step"] = "conditional_router"
@@ -740,28 +576,15 @@ class ConditionalWorkflowOrchestrator:
         return state
     
     def _positive_sentiment_processor_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Process positive sentiment content."""
         return self._sentiment_processor_node(state, "positive")
     
     def _negative_sentiment_processor_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Process negative sentiment content."""
         return self._sentiment_processor_node(state, "negative")
     
     def _neutral_sentiment_processor_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Process neutral sentiment content."""
         return self._sentiment_processor_node(state, "neutral")
     
     def _sentiment_processor_node(self, state: Dict[str, Any], sentiment: str) -> Dict[str, Any]:
-        """
-        Generic sentiment processor node.
-        
-        Args:
-            state: Current workflow state
-            sentiment: Type of sentiment being processed
-            
-        Returns:
-            Updated state with sentiment-specific processing results
-        """
         try:
             logger.info(f"Sentiment Processor: Processing {sentiment} sentiment content")
             state["current_step"] = f"{sentiment}_sentiment_processor"
@@ -837,15 +660,6 @@ class ConditionalWorkflowOrchestrator:
         return state
     
     def _agent_failure_recovery_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Handle agent failure recovery and rerouting.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Updated state with recovery results
-        """
         try:
             logger.info("Agent Failure Recovery: Attempting to recover from agent failure")
             state["current_step"] = "agent_failure_recovery"
@@ -909,14 +723,6 @@ class ConditionalWorkflowOrchestrator:
         return state
     
     def _reassign_agent_for_retry(self, failed_agent_id: str, backup_agent_id: str, failed_step: str):
-        """
-        Temporarily reassign the backup agent to replace the failed agent.
-        
-        Args:
-            failed_agent_id: ID of the failed agent
-            backup_agent_id: ID of the backup agent
-            failed_step: The step that failed
-        """
         # Store original agent reference
         if not hasattr(self, '_original_agents'):
             self._original_agents = {}
@@ -930,7 +736,6 @@ class ConditionalWorkflowOrchestrator:
         logger.info(f"Temporarily reassigned {backup_agent_id} to handle {failed_agent_id} tasks")
     
     def _restore_original_agents(self):
-        """Restore original agent assignments after retry."""
         if hasattr(self, '_original_agents'):
             for agent_id, original_agent in self._original_agents.items():
                 self.worker_agents[agent_id] = original_agent
@@ -938,15 +743,6 @@ class ConditionalWorkflowOrchestrator:
             logger.info("Original agent assignments restored")
     
     def _error_handler_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Handle errors in the conditional workflow.
-        
-        Args:
-            state: Current workflow state with error information
-            
-        Returns:
-            Updated state with error handling results
-        """
         try:
             logger.error("Error Handler: Processing conditional workflow error")
             
@@ -982,15 +778,6 @@ class ConditionalWorkflowOrchestrator:
         return state
     
     def _workflow_finalizer_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Finalize the conditional workflow and calculate metrics.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Final state with completion metrics
-        """
         try:
             logger.info("Workflow Finalizer: Completing conditional workflow execution")
             
@@ -1044,16 +831,6 @@ class ConditionalWorkflowOrchestrator:
     
     def execute_workflow(self, input_data: Dict[str, Any], 
                         thread_id: str = "conditional_workflow") -> Dict[str, Any]:
-        """
-        Execute the complete conditional workflow.
-        
-        Args:
-            input_data: Input data for the workflow
-            thread_id: Thread ID for state management
-            
-        Returns:
-            Final workflow results
-        """
         try:
             initial_state = {
                 "initial_input": input_data,
@@ -1075,12 +852,6 @@ class ConditionalWorkflowOrchestrator:
             }
     
     def get_workflow_status(self) -> Dict[str, Any]:
-        """
-        Get the current status of the conditional workflow orchestrator.
-        
-        Returns:
-            Status information
-        """
         return {
             "orchestrator_active": True,
             "workflow_graph_compiled": self.workflow_graph is not None,
@@ -1095,17 +866,6 @@ class ConditionalWorkflowOrchestrator:
         }
     
     def add_step(self, step_name: str, agent_name: str, step_config: Dict[str, Any] = None) -> bool:
-        """
-        Add a new step to the conditional workflow.
-        
-        Args:
-            step_name: Name of the step to add
-            agent_name: Name of the agent to execute this step
-            step_config: Optional configuration for the step
-            
-        Returns:
-            True if step was added successfully, False otherwise
-        """
         try:
             if step_config is None:
                 step_config = {}
@@ -1140,15 +900,6 @@ class ConditionalWorkflowOrchestrator:
             return False
     
     def get_status(self, workflow_id: str = None) -> Dict[str, Any]:
-        """
-        Get the status of a specific workflow execution or general orchestrator status.
-        
-        Args:
-            workflow_id: Optional workflow ID to get status for
-            
-        Returns:
-            Status information
-        """
         try:
             base_status = {
                 'orchestrator_status': 'active',
@@ -1198,7 +949,6 @@ class ConditionalWorkflowOrchestrator:
             }
     
     def _add_routing_rule(self, step_name: str, routing_conditions: Dict[str, Any]) -> None:
-        """Add a custom routing rule for a step."""
         try:
             # This would extend the router with custom routing logic
             # For now, log the addition

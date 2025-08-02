@@ -1,4 +1,4 @@
-/* WorkflowVisualizer Component Styles */
+/* WorkflowVisualizer Styles */
 .workflow-visualizer {
   height: 100%;
   display: flex;
@@ -6,7 +6,6 @@
   overflow: hidden;
 }
 
-/* No Workflow State */
 .no-workflow {
   display: flex;
   flex-direction: column;
@@ -36,7 +35,6 @@
   font-size: 0.9rem;
 }
 
-/* Workflow Header */
 .workflow-header {
   background-color: #2d2d2d;
   border-radius: 8px;
@@ -137,7 +135,6 @@
   white-space: nowrap;
 }
 
-/* Workflow Details */
 .workflow-details {
   display: flex;
   gap: 2rem;
@@ -167,7 +164,6 @@
   font-family: 'Courier New', monospace;
 }
 
-/* Steps Timeline */
 .workflow-steps {
   flex: 1;
   overflow: hidden;

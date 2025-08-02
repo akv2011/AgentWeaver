@@ -1,8 +1,3 @@
-"""
-API Request Models
-
-Pydantic models for API requests with proper validation and documentation.
-"""
 
 from typing import List, Dict, Any, Optional, Union
 from pydantic import BaseModel, Field, validator
@@ -10,7 +5,6 @@ from enum import Enum
 
 
 class WorkflowPriority(str, Enum):
-    """Workflow priority levels."""
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -18,7 +12,6 @@ class WorkflowPriority(str, Enum):
 
 
 class WorkflowCreateRequest(BaseModel):
-    """Request model for creating a new workflow."""
     
     input_data: Dict[str, Any] = Field(..., description="Input data for the workflow")
     workflow_type: Optional[str] = Field("conditional", description="Type of workflow to execute")
@@ -30,14 +23,12 @@ class WorkflowCreateRequest(BaseModel):
     
     @validator('input_data')
     def validate_input_data(cls, v):
-        """Validate that input_data is not empty."""
         if not v:
             raise ValueError("input_data cannot be empty")
         return v
     
     @validator('metadata')
     def validate_metadata(cls, v):
-        """Validate metadata structure."""
         if v and not isinstance(v, dict):
             raise ValueError("metadata must be a dictionary")
         return v
@@ -65,7 +56,6 @@ class WorkflowCreateRequest(BaseModel):
 
 
 class WorkflowControlRequest(BaseModel):
-    """Request model for controlling workflow execution."""
     
     action: str = Field(..., description="Control action (pause, resume, cancel, restart)")
     reason: Optional[str] = Field(None, description="Reason for the control action")
@@ -73,7 +63,6 @@ class WorkflowControlRequest(BaseModel):
     
     @validator('action')
     def validate_action(cls, v):
-        """Validate control action."""
         allowed_actions = {'pause', 'resume', 'cancel', 'restart'}
         if v.lower() not in allowed_actions:
             raise ValueError(f"Action must be one of: {', '.join(allowed_actions)}")
@@ -93,7 +82,6 @@ class WorkflowControlRequest(BaseModel):
 
 
 class AgentRegistrationRequest(BaseModel):
-    """Request model for registering a new agent."""
     
     name: str = Field(..., min_length=1, max_length=100, description="Human-readable agent name")
     type: str = Field(..., description="Agent type identifier")
@@ -104,14 +92,12 @@ class AgentRegistrationRequest(BaseModel):
     
     @validator('capabilities')
     def validate_capabilities(cls, v):
-        """Validate capabilities list."""
         if not v or len(v) == 0:
             raise ValueError("Agent must have at least one capability")
         return v
     
     @validator('name')
     def validate_name(cls, v):
-        """Validate agent name."""
         if not v.strip():
             raise ValueError("Agent name cannot be empty or whitespace only")
         return v.strip()
@@ -143,7 +129,6 @@ class AgentRegistrationRequest(BaseModel):
 
 
 class AgentUpdateRequest(BaseModel):
-    """Request model for updating agent configuration."""
     
     name: Optional[str] = Field(None, min_length=1, max_length=100, description="Updated agent name")
     capabilities: Optional[List[str]] = Field(None, description="Updated capabilities list")
@@ -154,14 +139,12 @@ class AgentUpdateRequest(BaseModel):
     
     @validator('name')
     def validate_name(cls, v):
-        """Validate agent name if provided."""
         if v is not None and not v.strip():
             raise ValueError("Agent name cannot be empty or whitespace only")
         return v.strip() if v else v
     
     @validator('capabilities')
     def validate_capabilities(cls, v):
-        """Validate capabilities if provided."""
         if v is not None and len(v) == 0:
             raise ValueError("Capabilities list cannot be empty if provided")
         return v
@@ -192,7 +175,6 @@ class AgentUpdateRequest(BaseModel):
 
 
 class WebSocketConnectionRequest(BaseModel):
-    """Request model for WebSocket connection parameters."""
     
     client_id: Optional[str] = Field(None, description="Unique client identifier")
     subscription_filters: List[str] = Field(default_factory=list, description="Event filters for subscription")
@@ -200,7 +182,6 @@ class WebSocketConnectionRequest(BaseModel):
     
     @validator('subscription_filters')
     def validate_filters(cls, v):
-        """Validate subscription filters."""
         allowed_filters = {
             'agent_updates', 'workflow_updates', 'system_notifications',
             'error_events', 'performance_metrics', 'all'
@@ -229,7 +210,6 @@ class WebSocketConnectionRequest(BaseModel):
 
 
 class BulkOperationRequest(BaseModel):
-    """Request model for bulk operations on multiple entities."""
     
     operation: str = Field(..., description="Bulk operation type")
     entity_ids: List[str] = Field(..., description="List of entity IDs to operate on")
@@ -238,7 +218,6 @@ class BulkOperationRequest(BaseModel):
     
     @validator('entity_ids')
     def validate_entity_ids(cls, v):
-        """Validate entity IDs list."""
         if not v or len(v) == 0:
             raise ValueError("At least one entity ID is required")
         if len(v) > 100:
@@ -247,7 +226,6 @@ class BulkOperationRequest(BaseModel):
     
     @validator('operation')
     def validate_operation(cls, v):
-        """Validate operation type."""
         allowed_operations = {
             'start', 'stop', 'restart', 'delete', 'update_status', 'bulk_update'
         }

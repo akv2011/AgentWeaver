@@ -1,9 +1,3 @@
-"""
-State management for AgentWeaver using LangGraph's built-in capabilities.
-
-This module provides state persistence and management functionality using
-LangGraph's StatefulGraph and MemorySaver for the MVP implementation.
-"""
 
 from typing import Dict, Any, Optional, TypedDict, Annotated
 from langgraph.graph import StateGraph, END
@@ -19,7 +13,6 @@ from .models import (
 
 
 class GraphState(TypedDict):
-    """State definition for LangGraph workflows."""
     # Core system state
     system_state: SystemState
     
@@ -40,15 +33,8 @@ class GraphState(TypedDict):
 
 
 class StateManager:
-    """
-    Manages system state using LangGraph's built-in state management.
-    
-    This class provides a high-level interface for managing agents, workflows,
-    tasks, and messages while leveraging LangGraph's state persistence.
-    """
     
     def __init__(self):
-        """Initialize the state manager with LangGraph components."""
         self.memory_saver = MemorySaver()
         self.thread_id = "agentweaver-main"
         
@@ -59,10 +45,8 @@ class StateManager:
         self.graph = self._create_state_graph()
     
     def _create_state_graph(self) -> StateGraph:
-        """Create a LangGraph StateGraph for managing system state."""
         
         def state_update_node(state: GraphState) -> GraphState:
-            """Node that handles state updates."""
             # Update system metrics
             state["system_state"].update_metrics()
             
@@ -73,7 +57,6 @@ class StateManager:
             return state
         
         def message_processor_node(state: GraphState) -> GraphState:
-            """Node that processes messages in the queue."""
             processed_messages = []
             
             for message in state["message_queue"]:
@@ -109,7 +92,6 @@ class StateManager:
         return workflow.compile(checkpointer=self.memory_saver)
     
     def get_current_state(self) -> GraphState:
-        """Get the current system state."""
         try:
             # Try to get existing state
             config = {"configurable": {"thread_id": self.thread_id}}
@@ -125,7 +107,6 @@ class StateManager:
             return self._get_initial_state()
     
     def _get_initial_state(self) -> GraphState:
-        """Get the initial system state."""
         return {
             "system_state": self.system_state,
             "current_agent_id": None,
@@ -138,7 +119,6 @@ class StateManager:
         }
     
     def update_state(self, updates: Dict[str, Any]) -> GraphState:
-        """Update the system state with new data."""
         current_state = self.get_current_state()
         
         # Apply updates
@@ -155,7 +135,6 @@ class StateManager:
     # Agent management methods
     
     def register_agent(self, agent: AgentState) -> bool:
-        """Register a new agent in the system."""
         try:
             current_state = self.get_current_state()
             current_state["system_state"].agents[agent.agent_id] = agent
@@ -169,12 +148,10 @@ class StateManager:
             return False
     
     def get_agent(self, agent_id: str) -> Optional[AgentState]:
-        """Get an agent by ID."""
         current_state = self.get_current_state()
         return current_state["system_state"].agents.get(agent_id)
     
     def update_agent_status(self, agent_id: str, status: AgentStatus) -> bool:
-        """Update an agent's status."""
         try:
             current_state = self.get_current_state()
             if agent_id in current_state["system_state"].agents:
@@ -189,7 +166,6 @@ class StateManager:
             return False
     
     def get_available_agents(self) -> list[AgentState]:
-        """Get all agents that are available for work."""
         current_state = self.get_current_state()
         return [
             agent for agent in current_state["system_state"].agents.values()
@@ -199,7 +175,6 @@ class StateManager:
     # Task management methods
     
     def create_task(self, task: Task) -> bool:
-        """Create a new task in the system."""
         try:
             current_state = self.get_current_state()
             current_state["system_state"].tasks[task.task_id] = task
@@ -211,12 +186,10 @@ class StateManager:
             return False
     
     def get_task(self, task_id: str) -> Optional[Task]:
-        """Get a task by ID."""
         current_state = self.get_current_state()
         return current_state["system_state"].tasks.get(task_id)
     
     def assign_task(self, task_id: str, agent_id: str) -> bool:
-        """Assign a task to an agent."""
         try:
             current_state = self.get_current_state()
             
@@ -240,7 +213,6 @@ class StateManager:
             return False
     
     def complete_task(self, task_id: str, result: Dict[str, Any]) -> bool:
-        """Mark a task as completed."""
         try:
             current_state = self.get_current_state()
             
@@ -270,7 +242,6 @@ class StateManager:
     # Message management methods
     
     def send_message(self, message: Message) -> bool:
-        """Send a message between agents."""
         try:
             current_state = self.get_current_state()
             
@@ -290,7 +261,6 @@ class StateManager:
             return False
     
     def get_messages_for_agent(self, agent_id: str) -> list[Message]:
-        """Get all unprocessed messages for an agent."""
         current_state = self.get_current_state()
         # Check both system messages and message queue
         system_messages = [
@@ -312,7 +282,6 @@ class StateManager:
     # Workflow management methods
     
     def create_workflow(self, workflow: WorkflowState) -> bool:
-        """Create a new workflow."""
         try:
             current_state = self.get_current_state()
             current_state["system_state"].workflows[workflow.workflow_id] = workflow
@@ -324,14 +293,12 @@ class StateManager:
             return False
     
     def get_workflow(self, workflow_id: str) -> Optional[WorkflowState]:
-        """Get a workflow by ID."""
         current_state = self.get_current_state()
         return current_state["system_state"].workflows.get(workflow_id)
     
     # Utility methods
     
     def get_system_metrics(self) -> Dict[str, Any]:
-        """Get current system metrics."""
         current_state = self.get_current_state()
         system_state = current_state["system_state"]
         system_state.update_metrics()
@@ -348,7 +315,6 @@ class StateManager:
         }
     
     def export_state(self) -> Dict[str, Any]:
-        """Export the current state as a dictionary."""
         current_state = self.get_current_state()
         return {
             "system_state": current_state["system_state"].model_dump(),
@@ -358,7 +324,6 @@ class StateManager:
         }
     
     def _log_error(self, error_message: str) -> None:
-        """Log an error to the system."""
         try:
             current_state = self.get_current_state()
             timestamp = datetime.utcnow().isoformat()
@@ -374,7 +339,6 @@ class StateManager:
             print(f"ERROR: {error_message}")
     
     def reset_state(self) -> None:
-        """Reset the system state to initial values."""
         initial_state = self._get_initial_state()
         config = {"configurable": {"thread_id": self.thread_id}}
         self.graph.invoke(initial_state, config)

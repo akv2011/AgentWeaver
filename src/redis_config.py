@@ -1,9 +1,3 @@
-"""
-Redis Configuration for AgentWeaver Persistent State Management
-
-This module provides Redis connection management and configuration for
-persistent state storage using Redis Cloud or local Redis instances.
-"""
 
 import os
 import redis
@@ -16,10 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class RedisConfig:
-    """Configuration class for Redis connections."""
     
     def __init__(self):
-        """Initialize Redis configuration."""
         # Default configuration for Redis Cloud
         # In production, these would come from environment variables
         self.redis_host = os.getenv('REDIS_HOST', 'localhost')
@@ -37,12 +29,6 @@ class RedisConfig:
         logger.info(f"Redis config initialized - Host: {self.redis_host}:{self.redis_port}")
     
     def get_connection_params(self) -> dict:
-        """
-        Get Redis connection parameters.
-        
-        Returns:
-            Dictionary of Redis connection parameters
-        """
         params = {
             'host': self.redis_host,
             'port': self.redis_port,
@@ -65,15 +51,8 @@ class RedisConfig:
 
 
 class RedisConnectionManager:
-    """Manages Redis connections and provides LangChain integration."""
     
     def __init__(self, config: Optional[RedisConfig] = None):
-        """
-        Initialize Redis connection manager.
-        
-        Args:
-            config: Redis configuration object
-        """
         self.config = config or RedisConfig()
         self._client = None
         self._saver = None
@@ -81,12 +60,6 @@ class RedisConnectionManager:
         logger.info("Redis connection manager initialized")
     
     def get_client(self) -> redis.Redis:
-        """
-        Get a Redis client instance.
-        
-        Returns:
-            Redis client instance
-        """
         if self._client is None:
             try:
                 connection_params = self.config.get_connection_params()
@@ -108,12 +81,6 @@ class RedisConnectionManager:
         return self._client
     
     def get_saver(self):
-        """
-        Get a LangChain Saver instance for persistent state management.
-        
-        Returns:
-            Saver instance configured with Redis connection or memory fallback
-        """
         if self._saver is None:
             try:
                 client = self.get_client()
@@ -145,12 +112,6 @@ class RedisConnectionManager:
         return self._saver
     
     def test_connection(self) -> bool:
-        """
-        Test the Redis connection.
-        
-        Returns:
-            True if connection is successful, False otherwise
-        """
         try:
             client = self.get_client()
             if isinstance(client, MockRedisClient):
@@ -165,12 +126,6 @@ class RedisConnectionManager:
             return False
     
     def get_connection_info(self) -> dict:
-        """
-        Get information about the Redis connection.
-        
-        Returns:
-            Dictionary with connection information
-        """
         return {
             'host': self.config.redis_host,
             'port': self.config.redis_port,
@@ -183,28 +138,22 @@ class RedisConnectionManager:
 
 
 class MockRedisClient:
-    """Mock Redis client for development when Redis is not available."""
     
     def __init__(self):
-        """Initialize mock Redis client."""
         self._data = {}
         logger.info("Mock Redis client initialized")
     
     def ping(self):
-        """Mock ping method."""
         return True
     
     def set(self, key, value):
-        """Mock set method."""
         self._data[key] = value
         return True
     
     def get(self, key):
-        """Mock get method."""
         return self._data.get(key)
     
     def delete(self, *keys):
-        """Mock delete method."""
         count = 0
         for key in keys:
             if key in self._data:
@@ -213,11 +162,9 @@ class MockRedisClient:
         return count
     
     def exists(self, key):
-        """Mock exists method."""
         return key in self._data
     
     def keys(self, pattern="*"):
-        """Mock keys method."""
         if pattern == "*":
             return list(self._data.keys())
         # Simple pattern matching for basic patterns
@@ -226,12 +173,6 @@ class MockRedisClient:
 
 
 def create_redis_manager() -> RedisConnectionManager:
-    """
-    Factory function to create a Redis connection manager.
-    
-    Returns:
-        Configured RedisConnectionManager instance
-    """
     config = RedisConfig()
     manager = RedisConnectionManager(config)
     
@@ -247,20 +188,8 @@ redis_manager = create_redis_manager()
 
 
 def get_redis_saver():
-    """
-    Get the global Redis saver instance.
-    
-    Returns:
-        RedisSaver or MemorySaver instance
-    """
     return redis_manager.get_saver()
 
 
 def get_redis_client():
-    """
-    Get the global Redis client instance.
-    
-    Returns:
-        Redis client instance
-    """
     return redis_manager.get_client()

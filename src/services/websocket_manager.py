@@ -1,8 +1,3 @@
-"""
-WebSocket Connection Manager
-
-Manages WebSocket connections for real-time updates to connected clients.
-"""
 
 import asyncio
 import json
@@ -16,14 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 class WebSocketManager:
-    """Manages WebSocket connections and broadcasts real-time updates."""
     
     def __init__(self):
         self.active_connections: List[WebSocket] = []
         self.connection_info: Dict[WebSocket, Dict[str, Any]] = {}
         
     async def connect(self, websocket: WebSocket, client_info: Dict[str, Any] = None):
-        """Accept a WebSocket connection and add it to the active connections."""
         await websocket.accept()
         self.active_connections.append(websocket)
         
@@ -46,7 +39,6 @@ class WebSocketManager:
         })
     
     async def disconnect(self, websocket: WebSocket):
-        """Remove a WebSocket connection from active connections."""
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
             
@@ -56,7 +48,6 @@ class WebSocketManager:
                        f"Total connections: {len(self.active_connections)}")
     
     async def disconnect_all(self):
-        """Disconnect all active WebSocket connections."""
         for websocket in self.active_connections.copy():
             try:
                 await websocket.close()
@@ -68,7 +59,6 @@ class WebSocketManager:
         logger.info("All WebSocket connections closed")
     
     async def broadcast(self, message: Dict[str, Any]):
-        """Broadcast a message to all connected WebSocket clients."""
         if not self.active_connections:
             logger.debug("No active WebSocket connections to broadcast to")
             return
@@ -87,12 +77,10 @@ class WebSocketManager:
             logger.debug(f"Broadcast message sent to {len(tasks)} connections")
     
     async def send_to_client(self, websocket: WebSocket, message: Dict[str, Any]):
-        """Send a message to a specific WebSocket client."""
         if websocket in self.active_connections:
             await self._send_to_connection(websocket, message)
     
     async def _send_to_connection(self, websocket: WebSocket, message: Dict[str, Any]):
-        """Internal method to send a message to a WebSocket connection."""
         try:
             # Check if connection is still active
             if websocket not in self.active_connections:
@@ -112,7 +100,6 @@ class WebSocketManager:
             await self.disconnect(websocket)
     
     def get_connection_stats(self) -> Dict[str, Any]:
-        """Get statistics about active WebSocket connections."""
         total_messages = sum(
             info.get("messages_sent", 0) 
             for info in self.connection_info.values()
@@ -133,7 +120,6 @@ class WebSocketManager:
         }
     
     async def send_agent_update(self, agent_id: str, status: str, details: Dict[str, Any] = None):
-        """Send an agent status update to all connected clients."""
         message = {
             "type": "agent_update",
             "agent_id": agent_id,
@@ -144,7 +130,6 @@ class WebSocketManager:
         await self.broadcast(message)
     
     async def send_workflow_update(self, workflow_id: str, status: str, step: str = None, details: Dict[str, Any] = None):
-        """Send a workflow progress update to all connected clients."""
         message = {
             "type": "workflow_update",
             "workflow_id": workflow_id,
@@ -156,7 +141,6 @@ class WebSocketManager:
         await self.broadcast(message)
     
     async def send_system_notification(self, notification_type: str, message: str, level: str = "info"):
-        """Send a system notification to all connected clients."""
         notification = {
             "type": "system_notification",
             "notification_type": notification_type,

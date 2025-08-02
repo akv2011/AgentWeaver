@@ -1,10 +1,3 @@
-"""
-Parallel Execution Nodes for LangGraph Swarm Orchestration
-==========================================================
-
-This module contains specialized LangGraph nodes for handling parallel execution
-of tasks through dynamic branching and worker coordination.
-"""
 
 from typing import Dict, List, Any, Optional, Callable, Union
 from datetime import datetime
@@ -21,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ParallelExecutionState:
-    """State for tracking parallel execution progress."""
     parallel_task_id: str
     sub_tasks: List[Dict[str, Any]]
     completed_results: List[Dict[str, Any]]
@@ -30,12 +22,10 @@ class ParallelExecutionState:
     current_batch_size: int = 3  # Max concurrent tasks
     
     def is_complete(self) -> bool:
-        """Check if all sub-tasks are completed."""
         total_processed = len(self.completed_results) + len(self.failed_tasks)
         return total_processed >= len(self.sub_tasks)
     
     def get_progress(self) -> float:
-        """Get execution progress as a percentage."""
         if not self.sub_tasks:
             return 1.0
         total_processed = len(self.completed_results) + len(self.failed_tasks)
@@ -43,32 +33,11 @@ class ParallelExecutionState:
 
 
 class ParallelForkNode:
-    """
-    LangGraph node for forking execution into parallel branches.
-    
-    This node takes a list of sub-tasks and initiates parallel execution
-    by creating multiple execution paths that can be processed concurrently.
-    """
     
     def __init__(self, max_concurrent_tasks: int = 3):
-        """
-        Initialize the fork node.
-        
-        Args:
-            max_concurrent_tasks: Maximum number of tasks to execute concurrently
-        """
         self.max_concurrent_tasks = max_concurrent_tasks
         
     def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Fork execution into parallel branches for sub-tasks.
-        
-        Args:
-            state: Current state containing sub_tasks_to_process
-            
-        Returns:
-            Updated state with parallel execution configuration
-        """
         try:
             sub_tasks = state.get("sub_tasks_to_process", [])
             
@@ -117,7 +86,6 @@ class ParallelForkNode:
             return self._create_error_fork_result(state, str(e))
     
     def _create_empty_fork_result(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Create result for empty sub-tasks list."""
         state.update({
             "parallel_execution_initiated": False,
             "fork_result": {
@@ -130,7 +98,6 @@ class ParallelForkNode:
         return state
     
     def _create_error_fork_result(self, state: Dict[str, Any], error: str) -> Dict[str, Any]:
-        """Create error result for fork operation."""
         state.update({
             "parallel_execution_initiated": False,
             "fork_result": {
@@ -142,16 +109,6 @@ class ParallelForkNode:
         return state
     
     def split_task(self, main_task: Dict[str, Any], num_chunks: int = None) -> List[Dict[str, Any]]:
-        """
-        Split a main task into smaller sub-tasks for parallel execution.
-        
-        Args:
-            main_task: The main task to split
-            num_chunks: Number of chunks to split into (defaults to max_concurrent_tasks)
-            
-        Returns:
-            List of sub-tasks for parallel processing
-        """
         try:
             if num_chunks is None:
                 num_chunks = self.max_concurrent_tasks
@@ -216,16 +173,6 @@ class ParallelForkNode:
     
     def distribute_work(self, sub_tasks: List[Dict[str, Any]], 
                        available_workers: List[str] = None) -> Dict[str, List[Dict[str, Any]]]:
-        """
-        Distribute sub-tasks among available workers.
-        
-        Args:
-            sub_tasks: List of sub-tasks to distribute
-            available_workers: List of available worker IDs
-            
-        Returns:
-            Dictionary mapping worker IDs to their assigned tasks
-        """
         try:
             if not available_workers:
                 available_workers = [f"worker_{i}" for i in range(self.max_concurrent_tasks)]
@@ -246,22 +193,9 @@ class ParallelForkNode:
 
 
 class ParallelWorkerNode:
-    """
-    LangGraph node for executing individual sub-tasks in parallel.
-    
-    This node processes one sub-task at a time and can be invoked
-    multiple times concurrently for parallel execution.
-    """
     
     def __init__(self, agent_registry: Optional[Dict[str, Any]] = None, 
                  use_concurrent_adapters: bool = True):
-        """
-        Initialize the worker node.
-        
-        Args:
-            agent_registry: Registry of available agents for task execution
-            use_concurrent_adapters: Whether to use concurrent worker adapters
-        """
         self.agent_registry = agent_registry or {}
         self.use_concurrent_adapters = use_concurrent_adapters
         
@@ -280,15 +214,6 @@ class ParallelWorkerNode:
             self.worker_registry = None
         
     def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute the next available sub-task.
-        
-        Args:
-            state: Current state with parallel execution information
-            
-        Returns:
-            Updated state with execution result
-        """
         try:
             # Get next sub-task to process (works with or without parallel_state)
             next_subtask = self._get_next_subtask(state)
@@ -307,7 +232,6 @@ class ParallelWorkerNode:
             return self._create_worker_error(state, str(e))
     
     def _get_next_subtask(self, state: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Get the next sub-task to process."""
         sub_tasks = state.get("sub_tasks_to_process", [])
         next_index = state.get("next_subtask_index", 0)
         active_subtasks = state.get("active_subtasks", [])
@@ -339,7 +263,6 @@ class ParallelWorkerNode:
         return next_task
     
     def _execute_subtask(self, subtask: Dict[str, Any], state: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a single sub-task."""
         task_id = subtask.get("task_id", f"subtask_{subtask.get('subtask_index', 'unknown')}")
         task_type = subtask.get("task_type", "general")
         parameters = subtask.get("parameters", {})
@@ -401,7 +324,6 @@ class ParallelWorkerNode:
             }
     
     def _execute_text_processing(self, parameters: Dict[str, Any], agent: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-        """Execute text processing task."""
         text_item = parameters.get("item", "")
         
         return {
@@ -412,7 +334,6 @@ class ParallelWorkerNode:
         }
     
     def _execute_data_analysis(self, parameters: Dict[str, Any], agent: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-        """Execute data analysis task."""
         data_item = parameters.get("item", {})
         
         # Simulate analysis
@@ -426,7 +347,6 @@ class ParallelWorkerNode:
         }
     
     def _execute_api_call(self, parameters: Dict[str, Any], agent: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-        """Execute API call task."""
         endpoint = parameters.get("endpoint", "/unknown")
         method = parameters.get("method", "GET")
         
@@ -439,7 +359,6 @@ class ParallelWorkerNode:
         }
     
     def _execute_generic_task(self, parameters: Dict[str, Any], agent: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-        """Execute generic task."""
         item = parameters.get("item", "unknown_item")
         
         return {
@@ -449,7 +368,6 @@ class ParallelWorkerNode:
         }
     
     def _find_suitable_agent(self, subtask: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Find a suitable agent for the sub-task."""
         required_capabilities = subtask.get("required_capabilities", [])
         
         # For demo purposes, return a mock agent
@@ -466,7 +384,6 @@ class ParallelWorkerNode:
         }
     
     def _update_state_with_result(self, state: Dict[str, Any], subtask: Dict[str, Any], result: Dict[str, Any]) -> Dict[str, Any]:
-        """Update state with sub-task execution result."""
         parallel_state = state.get("parallel_state")
         
         # Remove from active tasks
@@ -506,7 +423,6 @@ class ParallelWorkerNode:
         return state
     
     def _create_completion_result(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Create result when no more tasks to process."""
         state.update({
             "worker_completion": True,
             "message": "Worker completed all available sub-tasks"
@@ -514,7 +430,6 @@ class ParallelWorkerNode:
         return state
     
     def _create_worker_error(self, state: Dict[str, Any], error: str) -> Dict[str, Any]:
-        """Create error result for worker operation."""
         state.update({
             "worker_error": True,
             "worker_error_message": error,
@@ -523,16 +438,6 @@ class ParallelWorkerNode:
         return state
     
     def execute_parallel(self, task: Dict[str, Any], context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """
-        Execute a single task in parallel mode.
-        
-        Args:
-            task: The task to execute
-            context: Additional context for execution
-            
-        Returns:
-            Execution result
-        """
         try:
             if context is None:
                 context = {}
@@ -572,16 +477,6 @@ class ParallelWorkerNode:
             }
     
     def process_chunk(self, data_chunk: List[Any], processing_func: Callable = None) -> List[Any]:
-        """
-        Process a chunk of data using the specified processing function.
-        
-        Args:
-            data_chunk: Chunk of data to process
-            processing_func: Function to apply to each data item
-            
-        Returns:
-            Processed results
-        """
         try:
             if processing_func is None:
                 # Default processing - identity function
@@ -603,7 +498,6 @@ class ParallelWorkerNode:
             return []
     
     def _execute_data_processing(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute data processing task."""
         items = task_data.get('items', [])
         processed_items = []
         
@@ -622,7 +516,6 @@ class ParallelWorkerNode:
         }
     
     def _execute_text_analysis(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute text analysis task."""
         text = task_data.get('text', '')
         
         # Simple text analysis
@@ -637,7 +530,6 @@ class ParallelWorkerNode:
         }
     
     def _execute_api_interaction(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute API interaction task."""
         endpoint = task_data.get('endpoint', '')
         method = task_data.get('method', 'GET')
         
@@ -650,7 +542,6 @@ class ParallelWorkerNode:
         }
     
     def _execute_generic_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute generic task."""
         return {
             'status': 'completed',
             'data': task_data,
@@ -659,23 +550,8 @@ class ParallelWorkerNode:
 
 
 class ParallelAggregatorNode:
-    """
-    LangGraph node for aggregating results from parallel sub-task execution.
-    
-    This node collects all completed results and combines them into a
-    final aggregated result for the original task.
-    """
     
     def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Aggregate results from all parallel sub-tasks.
-        
-        Args:
-            state: Current state with completed sub-task results
-            
-        Returns:
-            Updated state with final aggregated result
-        """
         try:
             # Support both naming conventions for flexibility
             completed_results = state.get("completed_subtask_results", [])
@@ -724,7 +600,6 @@ class ParallelAggregatorNode:
             return self._create_aggregation_error(state, str(e))
     
     def _aggregate_results(self, completed: List[Dict[str, Any]], failed: List[Dict[str, Any]], original_task: Dict[str, Any]) -> Dict[str, Any]:
-        """Aggregate individual sub-task results into a final result."""
         
         total_tasks = len(completed) + len(failed)
         success_rate = len(completed) / total_tasks if total_tasks > 0 else 0
@@ -758,7 +633,6 @@ class ParallelAggregatorNode:
         }
     
     def _aggregate_by_task_type(self, completed_results: List[Dict[str, Any]], task_type: str) -> Dict[str, Any]:
-        """Aggregate results based on task type with enhanced consolidation strategies."""
         
         if task_type == "text_processing":
             total_original_length = sum(r.get("original_length", 0) for r in completed_results)
@@ -834,7 +708,6 @@ class ParallelAggregatorNode:
             }
     
     def _create_empty_aggregation(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Create result for empty results."""
         state.update({
             "final_aggregated_result": {
                 "status": "no_results",
@@ -848,7 +721,6 @@ class ParallelAggregatorNode:
         return state
     
     def _create_aggregation_error(self, state: Dict[str, Any], error: str) -> Dict[str, Any]:
-        """Create error result for aggregation."""
         state.update({
             "aggregation_result": {
                 "success": False,
@@ -860,16 +732,6 @@ class ParallelAggregatorNode:
     
     def aggregate_results(self, completed_results: List[Dict[str, Any]], 
                          failed_results: List[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """
-        Aggregate results from multiple parallel tasks.
-        
-        Args:
-            completed_results: List of completed task results
-            failed_results: List of failed task results
-            
-        Returns:
-            Aggregated result dictionary
-        """
         try:
             if failed_results is None:
                 failed_results = []
@@ -905,16 +767,6 @@ class ParallelAggregatorNode:
             }
     
     def combine_outputs(self, outputs: List[Any], combination_strategy: str = 'merge') -> Any:
-        """
-        Combine multiple outputs using the specified strategy.
-        
-        Args:
-            outputs: List of outputs to combine
-            combination_strategy: Strategy for combination ('merge', 'concatenate', 'sum', etc.)
-            
-        Returns:
-            Combined output
-        """
         try:
             if not outputs:
                 return {}
@@ -954,7 +806,6 @@ class ParallelAggregatorNode:
             return outputs
     
     def _combine_results_data(self, completed_results: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Combine data from completed results."""
         combined_data = {}
         
         # Collect numeric metrics
@@ -992,12 +843,6 @@ class ParallelAggregatorNode:
         return combined_data
     
     def _create_final_response(self, aggregated_result: Dict[str, Any], original_task: Dict[str, Any]) -> str:
-        """
-        Create a final, coherent response summarizing the parallel execution results.
-        
-        This method consolidates all parallel results into a single, final output
-        that can be easily consumed by downstream systems or users.
-        """
         task_type = original_task.get("task_type", "general")
         execution_summary = aggregated_result.get("execution_summary", {})
         aggregated_data = aggregated_result.get("aggregated_data", {})
@@ -1063,18 +908,6 @@ class ParallelAggregatorNode:
 
 
 def create_parallel_execution_router(state: Dict[str, Any]) -> str:
-    """
-    Enhanced router function to determine the next node in parallel execution.
-    
-    Implements the conditional logic to route from worker nodes to aggregator
-    only when all parallel tasks are complete, as specified in Task 12.5.
-    
-    Args:
-        state: Current state containing execution progress
-        
-    Returns:
-        Name of the next node to execute ("worker" or "aggregator")
-    """
     
     # Check if fork operation completed successfully
     if not state.get("parallel_execution_initiated", False):

@@ -1,10 +1,3 @@
-"""
-Orchestration Components
-=======================
-
-This package contains the orchestration and supervision components
-for managing multi-agent workflows and parallel execution.
-"""
 
 from .supervisor import SupervisorNode
 from .enhanced_supervisor import EnhancedSupervisor

@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-"""
-Simple test to verify imports work correctly.
-"""
 
 import sys
 import os
@@ -10,7 +7,6 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 def test_imports():
-    """Test that all modules can be imported successfully."""
     print("Testing imports...")
     
     try:
@@ -52,7 +48,6 @@ def test_imports():
         return False
 
 def test_basic_agent_creation():
-    """Test that agents can be created."""
     print("\nTesting agent creation...")
     
     try:

@@ -1,8 +1,3 @@
-"""
-Agents Router
-
-REST API endpoints for agent management and information retrieval.
-"""
 
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -28,14 +23,12 @@ router = APIRouter(prefix="/agents", tags=["Agents"])
 
 
 def get_supervisor() -> SupervisorNode:
-    """Dependency to get supervisor instance."""
     # This will be injected from the main app state
     from main import app
     return app.state.supervisor
 
 
 def convert_agent_to_response(agent_data: Dict[str, Any]) -> AgentResponse:
-    """Convert internal agent data to API response format."""
     try:
         # Extract agent information from the supervisor data structure
         agent_id = agent_data.get("id", "unknown")
@@ -102,12 +95,6 @@ async def list_agents(
     offset: int = Query(0, ge=0, description="Number of agents to skip"),
     supervisor: SupervisorNode = Depends(get_supervisor)
 ):
-    """
-    List all registered agents with optional filtering.
-    
-    Returns information about all agents currently registered in the system,
-    including their status, capabilities, and performance metrics.
-    """
     try:
         logger.info(f"Listing agents with filters - status: {status}, type: {agent_type}")
         
@@ -221,12 +208,6 @@ async def get_agent_details(
     agent_id: str,
     supervisor: SupervisorNode = Depends(get_supervisor)
 ):
-    """
-    Get detailed information about a specific agent.
-    
-    Returns comprehensive information about the agent including its current status,
-    capabilities, performance metrics, and configuration details.
-    """
     try:
         logger.info(f"Getting details for agent: {agent_id}")
         
@@ -340,7 +321,6 @@ async def get_agent_details(
 
 @router.get("/{agent_id}/status")
 async def get_agent_status(agent_id: str):
-    """Get the current status of a specific agent."""
     try:
         # Mock status data
         status_data = {
@@ -367,7 +347,6 @@ async def get_agent_status(agent_id: str):
 
 @router.get("/{agent_id}/metrics")
 async def get_agent_metrics(agent_id: str):
-    """Get performance metrics for a specific agent."""
     try:
         # Mock metrics data
         metrics_data = {

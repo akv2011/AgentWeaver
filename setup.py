@@ -1,6 +1,3 @@
-"""
-Setup configuration for AgentWeaver package.
-"""
 
 from setuptools import setup, find_packages
 
@@ -13,9 +10,9 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 setup(
     name="agentweaver",
     version="0.1.0",
-    author="AgentWeaver Team",
-    author_email="team@agentweaver.dev",
-    description="A sophisticated multi-agent orchestration system built with LangGraph",
+    author="Arun Kumar",
+    author_email="akv2011@example.com",
+    description="My multi-agent orchestration system built with LangGraph",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/akv2011/AgentWeaver",

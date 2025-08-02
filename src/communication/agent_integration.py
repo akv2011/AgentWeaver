@@ -1,9 +1,3 @@
-"""
-Agent Registration and Integration Script for AgentWeaver.
-
-This module provides functions to initialize and register all worker agents
-with the Supervisor node, creating a complete multi-agent system.
-"""
 
 from typing import Dict, List, Any, Optional
 import logging
@@ -22,31 +16,13 @@ logger = logging.getLogger(__name__)
 
 
 class AgentRegistry:
-    """
-    Registry for managing and initializing all worker agents in the system.
-    
-    This class handles the creation, registration, and lifecycle management
-    of worker agents with the supervisor.
-    """
     
     def __init__(self, supervisor: Optional[SupervisorNode] = None):
-        """
-        Initialize the Agent Registry.
-        
-        Args:
-            supervisor: Optional supervisor instance. If not provided, creates a new one.
-        """
         self.supervisor = supervisor or SupervisorNode()
         self.registered_agents: Dict[str, BaseWorkerAgent] = {}
         self.logger = logging.getLogger(f"{__name__}.AgentRegistry")
         
     def create_default_agents(self) -> List[BaseWorkerAgent]:
-        """
-        Create the default set of worker agents.
-        
-        Returns:
-            List of initialized worker agents
-        """
         agents = []
         
         try:
@@ -74,15 +50,6 @@ class AgentRegistry:
         return agents
     
     def register_agent_with_supervisor(self, agent: BaseWorkerAgent) -> bool:
-        """
-        Register a single agent with the supervisor.
-        
-        Args:
-            agent: Worker agent to register
-            
-        Returns:
-            True if registration successful, False otherwise
-        """
         try:
             # Prepare agent data for supervisor registration
             agent_data = {
@@ -113,15 +80,6 @@ class AgentRegistry:
             return False
     
     def register_all_agents(self, agents: Optional[List[BaseWorkerAgent]] = None) -> Dict[str, Any]:
-        """
-        Register all agents with the supervisor.
-        
-        Args:
-            agents: Optional list of agents to register. If not provided, creates default agents.
-            
-        Returns:
-            Dictionary containing registration results
-        """
         if agents is None:
             agents = self.create_default_agents()
         
@@ -161,15 +119,6 @@ class AgentRegistry:
         return results
     
     def unregister_agent(self, agent_id: str) -> bool:
-        """
-        Unregister an agent from the supervisor.
-        
-        Args:
-            agent_id: ID of agent to unregister
-            
-        Returns:
-            True if unregistration successful, False otherwise
-        """
         try:
             result = self.supervisor.unregister_agent(agent_id)
             
@@ -192,24 +141,9 @@ class AgentRegistry:
             return False
     
     def get_registered_agents(self) -> Dict[str, BaseWorkerAgent]:
-        """
-        Get all currently registered agents.
-        
-        Returns:
-            Dictionary of agent_id -> agent mappings
-        """
         return self.registered_agents.copy()
     
     def get_agent_by_capability(self, capability: AgentCapability) -> List[BaseWorkerAgent]:
-        """
-        Get all agents that have a specific capability.
-        
-        Args:
-            capability: The capability to search for
-            
-        Returns:
-            List of agents with the specified capability
-        """
         matching_agents = []
         
         for agent in self.registered_agents.values():
@@ -219,12 +153,6 @@ class AgentRegistry:
         return matching_agents
     
     def perform_health_checks(self) -> Dict[str, Any]:
-        """
-        Perform health checks on all registered agents.
-        
-        Returns:
-            Dictionary containing health check results
-        """
         results = {
             "total_agents": len(self.registered_agents),
             "healthy_agents": 0,
@@ -262,7 +190,6 @@ class AgentRegistry:
         return results
     
     def shutdown_all_agents(self) -> None:
-        """Shutdown and cleanup all registered agents."""
         self.logger.info("Shutting down all registered agents...")
         
         for agent_id, agent in list(self.registered_agents.items()):
@@ -282,15 +209,6 @@ class AgentRegistry:
 
 
 def initialize_agent_system(supervisor: Optional[SupervisorNode] = None) -> AgentRegistry:
-    """
-    Initialize the complete agent system with supervisor and worker agents.
-    
-    Args:
-        supervisor: Optional supervisor instance
-        
-    Returns:
-        Configured AgentRegistry with all agents registered
-    """
     logger.info("Initializing AgentWeaver agent system...")
     
     # Create agent registry
@@ -320,12 +238,6 @@ def initialize_agent_system(supervisor: Optional[SupervisorNode] = None) -> Agen
 
 
 def create_demo_task_assignment() -> Dict[str, Any]:
-    """
-    Create a demonstration of task assignment across different agent types.
-    
-    Returns:
-        Dictionary containing demo results
-    """
     logger.info("Creating demo task assignment...")
     
     # Initialize the system

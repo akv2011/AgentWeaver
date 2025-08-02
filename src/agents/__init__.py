@@ -1,9 +1,3 @@
-"""
-Agent module for AgentWeaver.
-
-This module contains the base agent classes and specialized agent implementations
-for the multi-agent orchestration system.
-"""
 
 from .base_agent import BaseWorkerAgent
 from .text_analysis_agent import TextAnalysisAgent

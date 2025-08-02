@@ -13,7 +13,7 @@ const mockAgents: Agent[] = [
     id: 'agent-001',
     name: 'Text Analysis Agent',
     status: 'running',
-    lastActivity: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
+    lastActivity: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
     currentTask: 'Analyzing sentiment in customer reviews',
     metrics: {
       tasksCompleted: 23,
@@ -25,7 +25,7 @@ const mockAgents: Agent[] = [
     id: 'agent-002',
     name: 'Data Processing Agent',
     status: 'idle',
-    lastActivity: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
+    lastActivity: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
     metrics: {
       tasksCompleted: 47,
       averageExecutionTime: 1.8,
@@ -36,7 +36,7 @@ const mockAgents: Agent[] = [
     id: 'agent-003',
     name: 'API Interaction Agent',
     status: 'busy',
-    lastActivity: new Date(Date.now() - 2 * 60 * 1000).toISOString(), // 2 minutes ago
+    lastActivity: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
     currentTask: 'Fetching external API data',
     metrics: {
       tasksCompleted: 12,
@@ -48,7 +48,7 @@ const mockAgents: Agent[] = [
     id: 'agent-004',
     name: 'Backup Agent',
     status: 'error',
-    lastActivity: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
+    lastActivity: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
     currentTask: 'Failed: Connection timeout',
     metrics: {
       tasksCompleted: 8,
@@ -60,7 +60,7 @@ const mockAgents: Agent[] = [
     id: 'agent-005',
     name: 'Monitor Agent',
     status: 'offline',
-    lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     metrics: {
       tasksCompleted: 156,
       averageExecutionTime: 0.8,
@@ -75,8 +75,8 @@ const mockWorkflow: Workflow = {
   name: 'Customer Review Analysis Pipeline',
   status: 'running',
   progress: 0.6,
-  startTime: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // Started 10 minutes ago
-  totalDuration: 10 * 60 * 1000, // 10 minutes
+  startTime: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+  totalDuration: 10 * 60 * 1000,
   steps: [
     {
       id: 'step-1',
@@ -84,7 +84,7 @@ const mockWorkflow: Workflow = {
       status: 'completed',
       startTime: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
       endTime: new Date(Date.now() - 9 * 60 * 1000).toISOString(),
-      duration: 45000, // 45 seconds
+      duration: 45000,
       output: 'Connected to customer review database\nLoaded 1,247 reviews for processing',
       agent: 'agent-002'
     },
@@ -94,7 +94,7 @@ const mockWorkflow: Workflow = {
       status: 'completed',
       startTime: new Date(Date.now() - 9 * 60 * 1000).toISOString(),
       endTime: new Date(Date.now() - 7 * 60 * 1000).toISOString(),
-      duration: 120000, // 2 minutes
+      duration: 120000,
       output: 'Cleaned and tokenized text data\nRemoved stop words and normalized format',
       agent: 'agent-001'
     },
@@ -155,7 +155,7 @@ function App() {
     if (activeWorkflows.length > 0) {
       const rtWorkflow = activeWorkflows[0];
       
-      // Convert real-time workflow data to our frontend format
+      // Convert real-time workflow data to frontend format
       return {
         id: rtWorkflow.id,
         name: rtWorkflow.details?.name || `Workflow ${rtWorkflow.id}`,
@@ -236,7 +236,7 @@ function App() {
 
   const handleAgentClick = (agent: Agent) => {
     console.log('Agent clicked:', agent);
-    // TODO: Show agent details or perform action
+    // Show agent details or perform action
   };
 
   const getConnectionStatusDisplay = () => {
@@ -269,12 +269,11 @@ function App() {
 
   const handleStepClick = (step: any) => {
     console.log('Workflow step clicked:', step);
-    // TODO: Show step details or perform action
+    // Show step details or perform action
   };
 
   return (
     <div className="dashboard">
-      {/* Header Section */}
       <header className="dashboard-header">
         <h1>AgentWeaver Dashboard</h1>
         <div className="header-info">
@@ -290,9 +289,7 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content Area */}
       <main className="dashboard-main">
-        {/* Left Panel - Agent Status */}
         <section className="agents-panel">
           <h2>
             Agent Status ({mergedAgents.length})
@@ -306,7 +303,6 @@ function App() {
           />
         </section>
 
-        {/* Right Panel - Workflow View */}
         <section className="workflow-panel">
           <h2>
             Workflow Execution
@@ -328,7 +324,6 @@ function App() {
         </section>
       </main>
 
-      {/* Footer Section */}
       <footer className="dashboard-footer">
         <div className="system-stats">
           <span>Active Workflows: {activeWorkflows.length}</span>

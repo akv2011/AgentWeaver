@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""
-AgentWeaver Live Verification - Deep Component Check
-==================================================
-
-This verification goes deeper into component functionality to ensure
-the live test is accurate and components truly work.
-"""
 
 import sys
 import os
@@ -13,7 +6,6 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 def verify_agentweaver_components():
-    """Perform deep verification of AgentWeaver components"""
     
     print("🔍 AGENTWEAVER DEEP COMPONENT VERIFICATION")
     print("=" * 50)

@@ -1,10 +1,3 @@
-"""
-Core AgentWeaver Components
-=========================
-
-This package contains the fundamental data models and state management
-components that form the foundation of the AgentWeaver system.
-"""
 
 from .models import (
     AgentState, Task, Message, WorkflowState, SystemState,

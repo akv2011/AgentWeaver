@@ -1,8 +1,3 @@
-"""
-API Response Models
-
-Pydantic models for API responses with proper validation and documentation.
-"""
 
 from typing import List, Dict, Any, Optional, Union
 from datetime import datetime
@@ -11,7 +6,6 @@ from enum import Enum
 
 
 class AgentStatus(str, Enum):
-    """Agent status enumeration."""
     ACTIVE = "active"
     IDLE = "idle"
     BUSY = "busy"
@@ -20,7 +14,6 @@ class AgentStatus(str, Enum):
 
 
 class WorkflowStatus(str, Enum):
-    """Workflow status enumeration."""
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -29,7 +22,6 @@ class WorkflowStatus(str, Enum):
 
 
 class AgentResponse(BaseModel):
-    """Response model for individual agent information."""
     
     id: str = Field(..., description="Unique agent identifier")
     name: str = Field(..., description="Human-readable agent name")
@@ -68,7 +60,6 @@ class AgentResponse(BaseModel):
 
 
 class AgentListResponse(BaseModel):
-    """Response model for agent listing endpoint."""
     
     agents: List[AgentResponse] = Field(..., description="List of agents")
     total_count: int = Field(..., description="Total number of agents")
@@ -101,7 +92,6 @@ class AgentListResponse(BaseModel):
 
 
 class WorkflowResponse(BaseModel):
-    """Response model for workflow information."""
     
     id: str = Field(..., description="Unique workflow identifier")
     status: WorkflowStatus = Field(..., description="Current workflow status")
@@ -144,7 +134,6 @@ class WorkflowResponse(BaseModel):
 
 
 class WorkflowListResponse(BaseModel):
-    """Response model for workflow listing endpoint."""
     
     workflows: List[WorkflowResponse] = Field(..., description="List of workflows")
     total_count: int = Field(..., description="Total number of workflows")
@@ -183,7 +172,6 @@ class WorkflowListResponse(BaseModel):
 
 
 class SystemStatusResponse(BaseModel):
-    """Response model for system status information."""
     
     status: str = Field(..., description="Overall system status")
     uptime: float = Field(..., description="System uptime in seconds")
@@ -223,7 +211,6 @@ class SystemStatusResponse(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    """Response model for API errors."""
     
     error: str = Field(..., description="Error type")
     message: str = Field(..., description="Human-readable error message")

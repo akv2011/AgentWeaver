@@ -1,10 +1,3 @@
-"""
-Enhanced Supervisor with Swarm Orchestration for Parallel Execution
-==================================================================
-
-This module extends the existing supervisor functionality to support
-parallel execution of tasks through swarm orchestration.
-"""
 
 from typing import Dict, List, Optional, Any, Union
 from datetime import datetime, timedelta
@@ -29,21 +22,8 @@ logger = logging.getLogger(__name__)
 
 
 class SwarmSupervisorNode(SupervisorNode):
-    """
-    Enhanced Supervisor Node with swarm orchestration capabilities.
-    
-    Extends the base SupervisorNode to support parallel execution of tasks
-    that can be decomposed into independent sub-tasks.
-    """
     
     def __init__(self, checkpointer=None, max_parallel_workers: int = 4):
-        """
-        Initialize the Swarm Supervisor Node.
-        
-        Args:
-            checkpointer: Optional MemorySaver for state persistence
-            max_parallel_workers: Maximum number of parallel worker instances
-        """
         super().__init__(checkpointer)
         self.max_parallel_workers = max_parallel_workers
         self.parallel_task_registry: Dict[str, Dict[str, Any]] = {}
@@ -58,7 +38,6 @@ class SwarmSupervisorNode(SupervisorNode):
         self._setup_swarm_supervisor_graph()
     
     def _setup_swarm_supervisor_graph(self):
-        """Set up the enhanced LangGraph StateGraph with parallel processing capabilities."""
         from langgraph.graph import StateGraph, START, END
         
         # Create the graph with our SystemState
@@ -80,7 +59,6 @@ class SwarmSupervisorNode(SupervisorNode):
         
         # Enhanced routing function with parallel processing support
         def route_message(state: Dict[str, Any]) -> str:
-            """Route messages to appropriate nodes based on message type and parallelization potential."""
             message = state.get("message")
             if not message:
                 return "monitor_health"  # Default action
@@ -105,14 +83,12 @@ class SwarmSupervisorNode(SupervisorNode):
         
         # Define conditional routing for parallel processing
         def route_after_detection(state: Dict[str, Any]) -> str:
-            """Route after parallel task detection."""
             if state.get("is_parallelizable", False):
                 return "split_parallel_task"
             else:
                 return "assign_task"
         
         def route_after_split(state: Dict[str, Any]) -> str:
-            """Route after task splitting."""
             return "fork"
         
         # Add edges with conditional routing
@@ -175,15 +151,6 @@ class SwarmSupervisorNode(SupervisorNode):
         self.graph = graph.compile(checkpointer=self.checkpointer)
     
     def _is_parallelizable_task(self, task_data: Optional[Dict[str, Any]]) -> bool:
-        """
-        Determine if a task can be parallelized.
-        
-        Args:
-            task_data: Task data to analyze
-            
-        Returns:
-            True if the task can be parallelized, False otherwise
-        """
         if not task_data:
             return False
         
@@ -228,15 +195,6 @@ class SwarmSupervisorNode(SupervisorNode):
         return False
     
     def _detect_parallelizable_task_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        LangGraph node for detecting if a task can be parallelized.
-        
-        Args:
-            state: Current state containing task data
-            
-        Returns:
-            Updated state with parallelization detection result
-        """
         try:
             task_data = state.get("task_to_assign")
             if not task_data:
@@ -272,15 +230,6 @@ class SwarmSupervisorNode(SupervisorNode):
         return state
     
     def _split_parallel_task_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        LangGraph node for splitting a parallelizable task into sub-tasks.
-        
-        Args:
-            state: Current state containing the task to split
-            
-        Returns:
-            Updated state with sub-tasks list
-        """
         try:
             task_data = state.get("task_to_assign")
             if not task_data:
@@ -383,12 +332,6 @@ class SwarmSupervisorNode(SupervisorNode):
         return state
     
     def _enhanced_assign_task_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Enhanced task assignment node that handles both regular and parallel tasks.
-        
-        This is a wrapper around the original _assign_task_node with additional
-        logging and state management for parallel processing context.
-        """
         # Check if this is part of a parallel execution
         is_subtask = False
         if "task_to_assign" in state:
@@ -413,16 +356,6 @@ class SwarmSupervisorNode(SupervisorNode):
         return result_state
     
     def execute_parallel_task(self, task_data: Dict[str, Any], thread_id: str = "swarm_supervisor") -> Dict[str, Any]:
-        """
-        Execute a parallel task using swarm orchestration.
-        
-        Args:
-            task_data: Task data potentially suitable for parallel execution
-            thread_id: Thread ID for graph execution
-            
-        Returns:
-            Execution result including parallel processing information
-        """
         try:
             # Prepare state for execution
             initial_state = {
@@ -446,33 +379,12 @@ class SwarmSupervisorNode(SupervisorNode):
             }
     
     def get_parallel_task_status(self, task_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Get the status of a parallel task execution.
-        
-        Args:
-            task_id: ID of the parallel task
-            
-        Returns:
-            Task status information or None if not found
-        """
         return self.parallel_task_registry.get(task_id)
     
     def list_parallel_tasks(self) -> List[Dict[str, Any]]:
-        """
-        List all parallel tasks and their statuses.
-        
-        Returns:
-            List of parallel task information
-        """
         return list(self.parallel_task_registry.values())
     
     def cleanup_completed_parallel_tasks(self, max_age_hours: int = 24):
-        """
-        Clean up completed parallel tasks older than the specified age.
-        
-        Args:
-            max_age_hours: Maximum age in hours for keeping completed tasks
-        """
         cutoff_time = datetime.utcnow() - timedelta(hours=max_age_hours)
         
         tasks_to_remove = []

@@ -1,8 +1,3 @@
-"""
-Workflows Router
-
-REST API endpoints for workflow management and control.
-"""
 
 import uuid
 from typing import List, Dict, Any, Optional
@@ -35,7 +30,6 @@ workflow_orchestrator = None
 
 
 def get_orchestrator() -> ConditionalWorkflowOrchestrator:
-    """Get or create workflow orchestrator instance."""
     global workflow_orchestrator
     if workflow_orchestrator is None:
         workflow_orchestrator = ConditionalWorkflowOrchestrator()
@@ -44,7 +38,6 @@ def get_orchestrator() -> ConditionalWorkflowOrchestrator:
 
 
 def convert_workflow_to_response(workflow_data: Dict[str, Any]) -> WorkflowResponse:
-    """Convert internal workflow data to API response format."""
     try:
         # Map internal status to API status enum
         internal_status = workflow_data.get("status", "pending")
@@ -113,7 +106,6 @@ def convert_workflow_to_response(workflow_data: Dict[str, Any]) -> WorkflowRespo
 
 
 async def execute_workflow_async(workflow_id: str, workflow_request: WorkflowCreateRequest):
-    """Execute workflow asynchronously in the background."""
     try:
         logger.info(f"Starting background execution of workflow {workflow_id}")
         
@@ -203,13 +195,6 @@ async def create_workflow(
     workflow_request: WorkflowCreateRequest,
     background_tasks: BackgroundTasks
 ):
-    """
-    Create and start a new workflow execution.
-    
-    This endpoint accepts workflow input data and starts the execution process.
-    The workflow runs asynchronously in the background, and you can monitor 
-    its progress using the workflow ID returned in the response.
-    """
     try:
         # Generate unique workflow ID
         workflow_id = str(uuid.uuid4())
@@ -266,12 +251,6 @@ async def list_workflows(
     limit: int = Query(100, ge=1, le=1000, description="Maximum number of workflows to return"),
     offset: int = Query(0, ge=0, description="Number of workflows to skip")
 ):
-    """
-    List all workflows with optional filtering.
-    
-    Returns information about all workflows in the system, including their
-    current status, progress, and execution details.
-    """
     try:
         logger.info(f"Listing workflows with status filter: {status}")
         
@@ -320,12 +299,6 @@ async def list_workflows(
 
 @router.get("/{workflow_id}", response_model=WorkflowResponse)
 async def get_workflow_details(workflow_id: str):
-    """
-    Get detailed information about a specific workflow.
-    
-    Returns comprehensive information about the workflow including its current
-    status, progress, input/output data, and execution details.
-    """
     try:
         logger.info(f"Getting details for workflow: {workflow_id}")
         
@@ -359,11 +332,6 @@ async def control_workflow(
     workflow_id: str,
     control_request: WorkflowControlRequest
 ):
-    """
-    Control workflow execution (pause, resume, cancel, restart).
-    
-    Allows external systems to control the execution state of a running workflow.
-    """
     try:
         logger.info(f"Controlling workflow {workflow_id}: {control_request.action}")
         
@@ -440,12 +408,6 @@ async def control_workflow(
 
 @router.delete("/{workflow_id}")
 async def delete_workflow(workflow_id: str):
-    """
-    Delete a workflow record.
-    
-    Removes the workflow from the system. Only completed, failed, or cancelled
-    workflows can be deleted.
-    """
     try:
         logger.info(f"Deleting workflow: {workflow_id}")
         

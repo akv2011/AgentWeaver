@@ -1,14 +1,3 @@
-"""
-AgentWeaver Backend API
-
-FastAPI application providing REST and WebSocket endpoints for monitoring
-and controlling AgentWeaver w# Include routers
-from src.api.routers import agents, workflows, websocket
-
-app.include_router(agents.router)
-app.include_router(workflows.router)
-app.include_router(websocket.router)ows.
-"""
 
 import sys
 import os
@@ -30,7 +19,7 @@ from src.orchestration.supervisor import SupervisorNode
 from src.core.redis_config import RedisConnectionManager
 from src.api.models import SystemStatusResponse
 
-# Configure logging
+# Logging setup
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(name)s %(levelname)s %(message)s'
@@ -40,19 +29,18 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan manager for startup/shutdown tasks."""
     # Startup
-    logger.info("Starting AgentWeaver API server...")
+    logger.info("Starting AgentWeaver server...")
     
-    # Initialize Redis connection manager
+    # Initialize Redis connection
     app.state.redis_manager = RedisConnectionManager()
-    logger.info("Redis connection manager initialized")
+    logger.info("Redis manager is ready")
     
     # Initialize supervisor
     app.state.supervisor = SupervisorNode()
-    logger.info("Supervisor initialized")
+    logger.info("Supervisor is ready")
     
-    # Initialize WebSocket connection manager
+    # Initialize WebSocket manager
     from src.services.websocket_manager import WebSocketManager
     from src.services.websocket_integration import integration_service
     app.state.ws_manager = WebSocketManager()
@@ -60,37 +48,36 @@ async def lifespan(app: FastAPI):
     # Connect integration service to WebSocket manager
     integration_service.set_websocket_manager(app.state.ws_manager)
     
-    logger.info("WebSocket manager and integration service initialized")
-    
-    logger.info("AgentWeaver API server started successfully")
+    logger.info("WebSocket system is ready")
+    logger.info("AgentWeaver server is fully operational")
     
     yield
     
     # Shutdown
-    logger.info("Shutting down AgentWeaver API server...")
+    logger.info("Shutting down AgentWeaver server...")
     
     # Cleanup connections
     if hasattr(app.state, 'ws_manager'):
         await app.state.ws_manager.disconnect_all()
-        logger.info("WebSocket connections closed")
+        logger.info("All WebSocket connections closed")
     
-    logger.info("AgentWeaver API server shutdown complete")
+    logger.info("AgentWeaver shutdown complete")
 
 
-# Create FastAPI application
+# FastAPI application
 app = FastAPI(
-    title="AgentWeaver Backend API",
-    description="REST and WebSocket APIs for monitoring and controlling AgentWeaver workflows",
+    title="AgentWeaver API",
+    description="Multi-agent orchestration platform",
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc"
 )
 
-# Add CORS middleware
+# CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=["*"],  # Allow all origins for now
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -99,9 +86,8 @@ app.add_middleware(
 
 @app.get("/", tags=["Root"])
 async def root():
-    """Root endpoint returning basic API information."""
     return {
-        "message": "AgentWeaver Backend API",
+        "message": "AgentWeaver API is running",
         "version": "1.0.0",
         "docs": "/docs",
         "health": "/health"
@@ -110,12 +96,11 @@ async def root():
 
 @app.get("/health", tags=["Health"], response_model=SystemStatusResponse)
 async def health_check():
-    """Health check endpoint to verify server status."""
     try:
-        # Check Redis connection
+        # Check Redis
         redis_status = "connected" if app.state.redis_manager.test_connection() else "disconnected"
         
-        # Check supervisor status
+        # Check supervisor
         supervisor_status = "initialized" if hasattr(app.state, 'supervisor') else "not_initialized"
         
         # Check WebSocket manager
@@ -124,7 +109,7 @@ async def health_check():
         
         return SystemStatusResponse(
             status="healthy",
-            uptime=0.0,  # TODO: Calculate actual uptime
+            uptime=0.0,  # Track actual uptime
             version="1.0.0",
             timestamp=datetime.now(),
             services={
@@ -134,8 +119,8 @@ async def health_check():
             },
             metrics={
                 "active_websocket_connections": ws_connections,
-                "active_agents": 0,  # TODO: Get from supervisor
-                "running_workflows": 0  # TODO: Get from supervisor
+                "active_agents": 0,  # Get from supervisor
+                "running_workflows": 0  # Get from supervisor
             }
         )
         
@@ -153,13 +138,12 @@ app.include_router(websocket.router)
 
 @app.get("/api/info", tags=["Info"])
 async def api_info():
-    """Get API information and available endpoints."""
     return {
-        "api": "AgentWeaver Backend API",
+        "api": "AgentWeaver",
         "version": "1.0.0",
         "endpoints": {
-            "agents": "/agents - List and manage agents",
-            "workflows": "/workflows - Control workflow execution", 
+            "agents": "/agents - Manage agents",
+            "workflows": "/workflows - Control workflows", 
             "websocket": "/ws/updates - Real-time updates"
         },
         "status": "ready"
@@ -167,7 +151,7 @@ async def api_info():
 
 
 if __name__ == "__main__":
-    # Run the server directly
+    # Run server
     uvicorn.run(
         "main:app",
         host="0.0.0.0",

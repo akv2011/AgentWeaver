@@ -1,10 +1,3 @@
-"""
-Concurrent Worker Agent Adapter for AgentWeaver Swarm Orchestration
-===================================================================
-
-This module provides adapters and utilities to make existing worker agents
-compatible with concurrent, stateless execution in the swarm orchestration system.
-"""
 
 from typing import Dict, Any, List, Optional, Callable, Union
 from datetime import datetime
@@ -25,21 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 class ConcurrentWorkerAdapter:
-    """
-    Adapter to make existing worker agents compatible with concurrent execution.
-    
-    This class wraps existing worker agents to ensure they can be executed
-    concurrently in a thread-safe manner for swarm orchestration.
-    """
     
     def __init__(self, worker_agent_class: type, agent_config: Dict[str, Any] = None):
-        """
-        Initialize the concurrent worker adapter.
-        
-        Args:
-            worker_agent_class: The worker agent class to adapt
-            agent_config: Configuration parameters for the agent
-        """
         self.worker_agent_class = worker_agent_class
         self.agent_config = agent_config or {}
         self.thread_local = threading.local()
@@ -51,11 +31,9 @@ class ConcurrentWorkerAdapter:
         logger.info(f"Concurrent adapter initialized for {worker_agent_class.__name__}")
     
     def get_capabilities(self) -> List[AgentCapability]:
-        """Get the capabilities of the adapted agent."""
         return self.prototype_agent.capabilities
     
     def get_agent_info(self) -> Dict[str, Any]:
-        """Get information about the adapted agent."""
         return {
             "agent_class": self.worker_agent_class.__name__,
             "capabilities": [cap.value for cap in self.prototype_agent.capabilities],
@@ -64,16 +42,6 @@ class ConcurrentWorkerAdapter:
         }
     
     def execute_subtask(self, subtask_data: Dict[str, Any], context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """
-        Execute a sub-task using the adapted worker agent in a thread-safe manner.
-        
-        Args:
-            subtask_data: Data for the sub-task to execute
-            context: Additional context data
-            
-        Returns:
-            Execution result dictionary
-        """
         try:
             # Create a thread-local agent instance to avoid state conflicts
             agent_instance = self._get_thread_local_agent()
@@ -145,7 +113,6 @@ class ConcurrentWorkerAdapter:
             }
     
     def _get_thread_local_agent(self) -> BaseWorkerAgent:
-        """Get or create a thread-local agent instance."""
         if not hasattr(self.thread_local, 'agent'):
             # Create a new agent instance for this thread
             agent_config = self.agent_config.copy()
@@ -160,7 +127,6 @@ class ConcurrentWorkerAdapter:
         return self.thread_local.agent
     
     def _create_task_from_subtask(self, subtask_data: Dict[str, Any]) -> Task:
-        """Convert subtask data to a Task object."""
         return Task(
             task_id=subtask_data.get("task_id", str(uuid.uuid4())),
             title=subtask_data.get("title", f"Subtask {subtask_data.get('task_id', 'unknown')}"),
@@ -174,7 +140,6 @@ class ConcurrentWorkerAdapter:
     def _format_concurrent_result(self, result: Dict[str, Any], subtask_data: Dict[str, Any], 
                                  agent_instance: BaseWorkerAgent, execution_time: float, 
                                  success: bool) -> Dict[str, Any]:
-        """Format the result for concurrent execution context."""
         return {
             "subtask_id": subtask_data.get("task_id", "unknown"),
             "status": "completed" if success else "failed",
@@ -190,15 +155,8 @@ class ConcurrentWorkerAdapter:
 
 
 class ConcurrentWorkerRegistry:
-    """
-    Registry for managing concurrent worker adapters.
-    
-    This class maintains a collection of worker adapters and provides
-    methods to find suitable workers for specific tasks.
-    """
     
     def __init__(self):
-        """Initialize the concurrent worker registry."""
         self.adapters: Dict[str, ConcurrentWorkerAdapter] = {}
         self.capability_map: Dict[str, List[str]] = {}
         
@@ -206,7 +164,6 @@ class ConcurrentWorkerRegistry:
         self._register_default_adapters()
     
     def _register_default_adapters(self):
-        """Register the default worker agent adapters."""
         # Text Analysis Agent
         self.register_adapter(
             "text_analyzer",
@@ -231,14 +188,6 @@ class ConcurrentWorkerRegistry:
         logger.info("Default concurrent worker adapters registered")
     
     def register_adapter(self, adapter_id: str, worker_class: type, config: Dict[str, Any] = None):
-        """
-        Register a new concurrent worker adapter.
-        
-        Args:
-            adapter_id: Unique identifier for the adapter
-            worker_class: Worker agent class to adapt
-            config: Configuration for the worker
-        """
         try:
             adapter = ConcurrentWorkerAdapter(worker_class, config)
             self.adapters[adapter_id] = adapter
@@ -257,15 +206,6 @@ class ConcurrentWorkerRegistry:
             raise
     
     def find_suitable_adapter(self, required_capabilities: List[str]) -> Optional[ConcurrentWorkerAdapter]:
-        """
-        Find a suitable adapter for the given capabilities.
-        
-        Args:
-            required_capabilities: List of required capability strings
-            
-        Returns:
-            Suitable adapter or None if no match found
-        """
         if not required_capabilities:
             # Return first available adapter if no specific requirements
             return next(iter(self.adapters.values()), None)
@@ -282,11 +222,9 @@ class ConcurrentWorkerRegistry:
         return suitable_adapters[0] if suitable_adapters else None
     
     def get_adapter(self, adapter_id: str) -> Optional[ConcurrentWorkerAdapter]:
-        """Get a specific adapter by ID."""
         return self.adapters.get(adapter_id)
     
     def list_adapters(self) -> Dict[str, Dict[str, Any]]:
-        """List all registered adapters and their information."""
         return {
             adapter_id: adapter.get_agent_info()
             for adapter_id, adapter in self.adapters.items()
@@ -294,16 +232,6 @@ class ConcurrentWorkerRegistry:
     
     def execute_subtask_with_best_adapter(self, subtask_data: Dict[str, Any], 
                                         context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """
-        Execute a subtask using the best available adapter.
-        
-        Args:
-            subtask_data: Subtask data to execute
-            context: Additional context
-            
-        Returns:
-            Execution result
-        """
         required_capabilities = subtask_data.get("required_capabilities", [])
         
         # Find suitable adapter
@@ -324,21 +252,8 @@ class ConcurrentWorkerRegistry:
 
 
 class ConcurrentExecutionPool:
-    """
-    Pool for managing concurrent execution of subtasks.
-    
-    This class provides high-level methods for executing multiple subtasks
-    concurrently using thread pools and worker adapters.
-    """
     
     def __init__(self, max_workers: int = 4, worker_registry: ConcurrentWorkerRegistry = None):
-        """
-        Initialize the concurrent execution pool.
-        
-        Args:
-            max_workers: Maximum number of concurrent workers
-            worker_registry: Registry of worker adapters
-        """
         self.max_workers = max_workers
         self.worker_registry = worker_registry or ConcurrentWorkerRegistry()
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
@@ -347,16 +262,6 @@ class ConcurrentExecutionPool:
     
     def execute_subtasks_concurrently(self, subtasks: List[Dict[str, Any]], 
                                     context: Dict[str, Any] = None) -> List[Dict[str, Any]]:
-        """
-        Execute multiple subtasks concurrently.
-        
-        Args:
-            subtasks: List of subtask data to execute
-            context: Shared context for all subtasks
-            
-        Returns:
-            List of execution results
-        """
         if not subtasks:
             return []
         
@@ -396,12 +301,6 @@ class ConcurrentExecutionPool:
         return results
     
     def shutdown(self, wait: bool = True):
-        """
-        Shutdown the execution pool.
-        
-        Args:
-            wait: Whether to wait for pending tasks to complete
-        """
         self.executor.shutdown(wait=wait)
         logger.info("Concurrent execution pool shutdown")
 
@@ -412,7 +311,6 @@ _global_execution_pool = None
 
 
 def get_global_worker_registry() -> ConcurrentWorkerRegistry:
-    """Get the global worker registry instance."""
     global _global_worker_registry
     if _global_worker_registry is None:
         _global_worker_registry = ConcurrentWorkerRegistry()
@@ -420,7 +318,6 @@ def get_global_worker_registry() -> ConcurrentWorkerRegistry:
 
 
 def get_global_execution_pool(max_workers: int = 4) -> ConcurrentExecutionPool:
-    """Get the global execution pool instance."""
     global _global_execution_pool
     if _global_execution_pool is None:
         _global_execution_pool = ConcurrentExecutionPool(

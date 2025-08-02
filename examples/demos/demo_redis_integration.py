@@ -1,9 +1,3 @@
-"""
-Redis Integration Demo for AgentWeaver
-
-This script demonstrates persistent state management using Redis Cloud,
-including workflow persistence, resume capability, and state inspection.
-"""
 
 import sys
 import os
@@ -16,7 +10,6 @@ import time
 import uuid
 
 def demo_redis_integration():
-    """Demonstrate Redis integration with persistent workflows."""
     
     print("🚀 AgentWeaver Redis Integration Demo")
     print("=" * 50)

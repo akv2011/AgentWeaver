@@ -1,8 +1,3 @@
-"""
-API Models Package
-
-Contains Pydantic models for API request/response validation.
-"""
 
 from .requests import (
     WorkflowCreateRequest,

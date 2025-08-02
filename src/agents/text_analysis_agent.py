@@ -1,9 +1,3 @@
-"""
-Text Analysis Worker Agent for AgentWeaver.
-
-This module implements a worker agent specialized in text analysis tasks,
-particularly text summarization using language models.
-"""
 
 from typing import Dict, Any, List
 import logging
@@ -17,20 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class TextAnalysisAgent(BaseWorkerAgent):
-    """
-    Worker agent specialized in text analysis and summarization tasks.
-    
-    This agent can process text content and generate summaries, extract key points,
-    and perform other text analysis operations.
-    """
     
     def __init__(self, name: str = "TextAnalyzer"):
-        """
-        Initialize the Text Analysis Agent.
-        
-        Args:
-            name: Name for this agent instance
-        """
         capabilities = [AgentCapability.ANALYSIS, AgentCapability.DATA_PROCESSING]
         super().__init__(name, capabilities, "text_analyzer")
         
@@ -41,20 +23,6 @@ class TextAnalysisAgent(BaseWorkerAgent):
         self.logger.info(f"Text Analysis Agent '{name}' initialized")
     
     def execute(self, task: Task, context: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute a text analysis task.
-        
-        Args:
-            task: The task to execute
-            context: Additional context data from the graph state
-            
-        Returns:
-            Dictionary containing the analysis results
-            
-        Raises:
-            ValueError: If required input parameters are missing
-            Exception: If text analysis fails
-        """
         start_time = datetime.utcnow()
         
         try:
@@ -113,16 +81,6 @@ class TextAnalysisAgent(BaseWorkerAgent):
             }
     
     def _summarize_text(self, text: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Summarize the given text.
-        
-        Args:
-            text: Text to summarize
-            parameters: Additional parameters for summarization
-            
-        Returns:
-            Dictionary containing the summary and metadata
-        """
         # Get target summary length from parameters
         target_length = parameters.get('summary_length', self.max_summary_length)
         
@@ -174,16 +132,6 @@ class TextAnalysisAgent(BaseWorkerAgent):
         }
     
     def _extract_keywords(self, text: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Extract keywords from the given text.
-        
-        Args:
-            text: Text to analyze
-            parameters: Additional parameters for keyword extraction
-            
-        Returns:
-            Dictionary containing keywords and metadata
-        """
         max_keywords = parameters.get('max_keywords', 10)
         
         # Simple keyword extraction based on word frequency
@@ -216,16 +164,6 @@ class TextAnalysisAgent(BaseWorkerAgent):
         }
     
     def _analyze_sentiment(self, text: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Analyze sentiment of the given text.
-        
-        Args:
-            text: Text to analyze
-            parameters: Additional parameters for sentiment analysis
-            
-        Returns:
-            Dictionary containing sentiment analysis results
-        """
         # Simple rule-based sentiment analysis
         positive_words = {
             'good', 'great', 'excellent', 'amazing', 'wonderful', 'fantastic',
@@ -268,15 +206,6 @@ class TextAnalysisAgent(BaseWorkerAgent):
         }
     
     def _split_into_sentences(self, text: str) -> List[str]:
-        """
-        Split text into sentences.
-        
-        Args:
-            text: Text to split
-            
-        Returns:
-            List of sentences
-        """
         import re
         
         # Simple sentence splitting based on punctuation
@@ -288,15 +217,6 @@ class TextAnalysisAgent(BaseWorkerAgent):
         return sentences
     
     def can_handle_task(self, task: Task) -> bool:
-        """
-        Check if this agent can handle the given task.
-        
-        Args:
-            task: The task to check
-            
-        Returns:
-            True if the agent can handle text analysis tasks
-        """
         # Check if it's a text analysis task
         if task.task_type == 'text_analysis':
             return True
@@ -309,12 +229,6 @@ class TextAnalysisAgent(BaseWorkerAgent):
         return super().can_handle_task(task)
     
     def health_check(self) -> bool:
-        """
-        Perform a health check specific to text analysis capabilities.
-        
-        Returns:
-            True if the agent is healthy and can perform text analysis
-        """
         try:
             # Basic health check from parent
             if not super().health_check():

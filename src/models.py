@@ -1,10 +1,3 @@
-"""
-Core data models for AgentWeaver.
-
-This module defines the fundamental data structures used throughout the
-multi-agent orchestration system, including agent states, workflow states,
-messages, and tasks.
-"""
 
 from typing import Dict, List, Optional, Any, Union, Literal
 from pydantic import BaseModel, Field, validator
@@ -14,7 +7,6 @@ import uuid
 
 
 class AgentStatus(str, Enum):
-    """Enumeration of possible agent statuses."""
     AVAILABLE = "available"
     BUSY = "busy"
     ERROR = "error"
@@ -24,7 +16,6 @@ class AgentStatus(str, Enum):
 
 
 class TaskStatus(str, Enum):
-    """Enumeration of possible task statuses."""
     PENDING = "pending"
     IN_PROGRESS = "in-progress"
     COMPLETED = "completed"
@@ -33,7 +24,6 @@ class TaskStatus(str, Enum):
 
 
 class MessageType(str, Enum):
-    """Enumeration of message types."""
     COMMAND = "command"
     RESPONSE = "response"
     STATUS = "status"
@@ -42,7 +32,6 @@ class MessageType(str, Enum):
 
 
 class TaskPriority(str, Enum):
-    """Enumeration of task priorities."""
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -50,7 +39,6 @@ class TaskPriority(str, Enum):
 
 
 class MessagePriority(str, Enum):
-    """Enumeration of message priorities."""
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -58,7 +46,6 @@ class MessagePriority(str, Enum):
 
 
 class AgentCapability(str, Enum):
-    """Enumeration of agent capabilities."""
     RESEARCH = "research"
     ANALYSIS = "analysis"
     COORDINATION = "coordination"
@@ -71,7 +58,6 @@ class AgentCapability(str, Enum):
 
 
 class AgentState(BaseModel):
-    """State model for individual agents in the system."""
     
     agent_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
@@ -105,7 +91,6 @@ class AgentState(BaseModel):
         return v
     
     def update_performance(self, execution_time: float = 0.0, success: bool = True):
-        """Update performance metrics."""
         if success:
             self.tasks_completed += 1
         else:
@@ -123,7 +108,6 @@ class AgentState(BaseModel):
     
     @property
     def success_rate(self) -> float:
-        """Calculate the success rate of completed tasks."""
         total_tasks = self.tasks_completed + self.tasks_failed
         if total_tasks == 0:
             return 1.0
@@ -137,7 +121,6 @@ class AgentState(BaseModel):
 
 
 class Message(BaseModel):
-    """Message model for inter-agent communication."""
     
     message_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     sender_id: str
@@ -167,7 +150,6 @@ class Message(BaseModel):
 
 
 class Task(BaseModel):
-    """Task model for work items in the system."""
     
     task_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     title: str
@@ -202,25 +184,21 @@ class Task(BaseModel):
     retry_count: int = 0
     
     def assign_task(self, agent_id: str):
-        """Assign task to an agent and mark as started."""
         self.status = TaskStatus.IN_PROGRESS
         self.assigned_agent_id = agent_id
         self.started_at = datetime.utcnow()
     
     def start_task(self, agent_id: str):
-        """Mark task as started by an agent."""
         self.status = TaskStatus.IN_PROGRESS
         self.assigned_agent_id = agent_id
         self.started_at = datetime.utcnow()
     
     def complete_task(self, result: Dict[str, Any]):
-        """Mark task as completed with result."""
         self.status = TaskStatus.COMPLETED
         self.result = result
         self.completed_at = datetime.utcnow()
     
     def fail_task(self, error_message: str):
-        """Mark task as failed with error message."""
         self.status = TaskStatus.FAILED
         self.error_message = error_message
         self.completed_at = datetime.utcnow()
@@ -233,7 +211,6 @@ class Task(BaseModel):
 
 
 class WorkflowStep(BaseModel):
-    """Individual step in a workflow."""
     step_id: str
     name: str
     agent_type: Optional[str] = None  # Type of agent required
@@ -246,7 +223,6 @@ class WorkflowStep(BaseModel):
 
 
 class WorkflowState(BaseModel):
-    """State model for workflow execution."""
     
     workflow_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
@@ -277,13 +253,11 @@ class WorkflowState(BaseModel):
     active_tasks: Dict[str, str] = Field(default_factory=dict)  # step_id -> task_id
     
     def start_workflow(self):
-        """Start workflow execution."""
         self.status = "running"
         self.started_at = datetime.utcnow()
         self.current_step = self.entry_point
     
     def complete_step(self, step_id: str, result: Dict[str, Any]):
-        """Mark a step as completed."""
         if step_id not in self.completed_steps:
             self.completed_steps.append(step_id)
         
@@ -300,7 +274,6 @@ class WorkflowState(BaseModel):
             del self.active_tasks[step_id]
     
     def fail_step(self, step_id: str, error: str):
-        """Mark a step as failed."""
         if step_id not in self.failed_steps:
             self.failed_steps.append(step_id)
         
@@ -324,7 +297,6 @@ class WorkflowState(BaseModel):
 
 
 class SystemState(BaseModel):
-    """Overall system state containing all agents, workflows, and tasks."""
     
     # Collections of system entities
     agents: Dict[str, AgentState] = Field(default_factory=dict)
@@ -346,7 +318,6 @@ class SystemState(BaseModel):
     completed_tasks: int = 0
     
     def update_metrics(self):
-        """Update system-level metrics."""
         self.total_agents = len(self.agents)
         self.active_agents = len([a for a in self.agents.values() if a.status not in [AgentStatus.OFFLINE, AgentStatus.ERROR]])
         

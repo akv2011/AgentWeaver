@@ -1,10 +1,3 @@
-"""
-Supervisor Node Implementation for AgentWeaver
-==============================================
-
-This module implements the central Supervisor Node as a LangGraph node.
-The supervisor handles agent registration, health monitoring, and task assignment.
-"""
 
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
@@ -23,21 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 class SupervisorNode:
-    """
-    Central Supervisor Node for managing worker agents and task assignment.
-    
-    This class implements the supervisor as a LangGraph node that maintains
-    a registry of available worker agents, monitors their health, and assigns
-    tasks based on agent capabilities and availability.
-    """
     
     def __init__(self, checkpointer: Optional[MemorySaver] = None):
-        """
-        Initialize the Supervisor Node.
-        
-        Args:
-            checkpointer: Optional MemorySaver for state persistence
-        """
         self.checkpointer = checkpointer or MemorySaver()
         self.agent_registry: Dict[str, AgentState] = {}
         self.task_queue: List[Task] = []
@@ -45,7 +25,6 @@ class SupervisorNode:
         self._setup_supervisor_graph()
         
     def _setup_supervisor_graph(self):
-        """Set up the LangGraph StateGraph for the supervisor."""
         # Create the graph with our SystemState
         graph = StateGraph(dict)
         
@@ -58,7 +37,6 @@ class SupervisorNode:
         
         # Define routing function
         def route_message(state: Dict[str, Any]) -> str:
-            """Route messages to appropriate nodes based on message type."""
             message = state.get("message")
             if not message:
                 return "monitor_health"  # Default action
@@ -97,15 +75,6 @@ class SupervisorNode:
         self.supervisor_graph = graph.compile(checkpointer=self.checkpointer)
         
     def _register_agent_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        LangGraph node for registering a new agent with the supervisor.
-        
-        Args:
-            state: Current state containing agent information
-            
-        Returns:
-            Updated state with registered agent
-        """
         try:
             agent_data = state.get("agent_to_register")
             if not agent_data:
@@ -153,15 +122,6 @@ class SupervisorNode:
         return state
         
     def _unregister_agent_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        LangGraph node for unregistering an agent from the supervisor.
-        
-        Args:
-            state: Current state containing agent ID to unregister
-            
-        Returns:
-            Updated state with agent removed
-        """
         try:
             agent_id = state.get("agent_id_to_unregister")
             if not agent_id:
@@ -204,15 +164,6 @@ class SupervisorNode:
         return state
         
     def _assign_task_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        LangGraph node for assigning tasks to available agents.
-        
-        Args:
-            state: Current state containing task to assign
-            
-        Returns:
-            Updated state with task assignment result
-        """
         try:
             task_data = state.get("task_to_assign")
             if not task_data:
@@ -279,15 +230,6 @@ class SupervisorNode:
         return state
         
     def _monitor_health_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        LangGraph node for monitoring agent health and availability.
-        
-        Args:
-            state: Current state
-            
-        Returns:
-            Updated state with health monitoring results
-        """
         try:
             health_report = {
                 "timestamp": datetime.now().isoformat(),
@@ -339,15 +281,6 @@ class SupervisorNode:
         return state
         
     def _process_supervisor_message_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        LangGraph node for processing incoming supervisor messages.
-        
-        Args:
-            state: Current state containing message to process
-            
-        Returns:
-            Updated state with message processing result
-        """
         try:
             message_data = state.get("message")
             if not message_data:
@@ -382,15 +315,6 @@ class SupervisorNode:
         return state
         
     def _find_suitable_agent(self, task: Task) -> Optional[AgentState]:
-        """
-        Find a suitable agent for the given task based on capabilities and availability.
-        
-        Args:
-            task: Task to find an agent for
-            
-        Returns:
-            Suitable AgentState if found, None otherwise
-        """
         for agent in self.agent_registry.values():
             if (agent.status == AgentStatus.AVAILABLE and 
                 self._agent_has_required_capabilities(agent, task.required_capabilities)):
@@ -399,16 +323,6 @@ class SupervisorNode:
         
     def _agent_has_required_capabilities(self, agent: AgentState, 
                                        required_capabilities: List[AgentCapability]) -> bool:
-        """
-        Check if an agent has all required capabilities for a task.
-        
-        Args:
-            agent: Agent to check
-            required_capabilities: List of required capabilities
-            
-        Returns:
-            True if agent has all required capabilities, False otherwise
-        """
         if not required_capabilities:
             return True
             
@@ -419,16 +333,6 @@ class SupervisorNode:
     # Public interface methods
     
     def register_agent(self, agent_data: Dict[str, Any], thread_id: str = "supervisor") -> Dict[str, Any]:
-        """
-        Register a new agent with the supervisor.
-        
-        Args:
-            agent_data: Dictionary containing agent information
-            thread_id: Thread ID for state management
-            
-        Returns:
-            Registration result
-        """
         initial_state = {
             "message": {
                 "type": "register_agent",
@@ -442,16 +346,6 @@ class SupervisorNode:
         return result.get("registration_result", {"success": False, "error": "Unknown error"})
         
     def unregister_agent(self, agent_id: str, thread_id: str = "supervisor") -> Dict[str, Any]:
-        """
-        Unregister an agent from the supervisor.
-        
-        Args:
-            agent_id: ID of agent to unregister
-            thread_id: Thread ID for state management
-            
-        Returns:
-            Unregistration result
-        """
         initial_state = {
             "message": {
                 "type": "unregister_agent",
@@ -465,16 +359,6 @@ class SupervisorNode:
         return result.get("unregistration_result", {"success": False, "error": "Unknown error"})
         
     def assign_task(self, task_data: Dict[str, Any], thread_id: str = "supervisor") -> Dict[str, Any]:
-        """
-        Assign a task to an available agent.
-        
-        Args:
-            task_data: Dictionary containing task information
-            thread_id: Thread ID for state management
-            
-        Returns:
-            Assignment result
-        """
         initial_state = {
             "message": {
                 "type": "assign_task",
@@ -488,15 +372,6 @@ class SupervisorNode:
         return result.get("assignment_result", {"success": False, "error": "Unknown error"})
         
     def get_health_report(self, thread_id: str = "supervisor") -> Dict[str, Any]:
-        """
-        Get a health report of all registered agents.
-        
-        Args:
-            thread_id: Thread ID for state management
-            
-        Returns:
-            Health report
-        """
         initial_state = {
             "message": {
                 "type": "health_check",
@@ -510,34 +385,12 @@ class SupervisorNode:
         return result.get("health_report", {"error": "Health check failed"})
         
     def get_agent_registry(self) -> Dict[str, AgentState]:
-        """
-        Get the current agent registry.
-        
-        Returns:
-            Dictionary mapping agent IDs to AgentState objects
-        """
         return self.agent_registry.copy()
         
     def get_task_queue(self) -> List[Task]:
-        """
-        Get the current task queue.
-        
-        Returns:
-            List of queued tasks
-        """
         return self.task_queue.copy()
         
     def mark_task_complete(self, task_id: str, agent_id: str) -> bool:
-        """
-        Mark a task as complete and free up the assigned agent.
-        
-        Args:
-            task_id: ID of completed task
-            agent_id: ID of agent that completed the task
-            
-        Returns:
-            True if task was marked complete, False otherwise
-        """
         try:
             if agent_id in self.agent_registry:
                 agent = self.agent_registry[agent_id]
@@ -559,7 +412,6 @@ class SupervisorNode:
             return False
             
     def _process_queued_tasks(self):
-        """Process any queued tasks that can now be assigned."""
         tasks_to_remove = []
         
         for i, task in enumerate(self.task_queue):
@@ -581,18 +433,11 @@ class SupervisorNode:
     
     @property
     def supervisor_id(self) -> str:
-        """Get the supervisor's unique ID."""
         if not hasattr(self, '_supervisor_id'):
             self._supervisor_id = str(uuid.uuid4())
         return self._supervisor_id
     
     def monitor_agents(self) -> Dict[str, Any]:
-        """
-        Monitor all registered agents and their health status.
-        
-        Returns:
-            Dictionary containing agent monitoring information
-        """
         try:
             monitoring_report = {
                 'timestamp': datetime.utcnow().isoformat(),
@@ -645,12 +490,6 @@ class SupervisorNode:
             }
     
     def get_supervisor_status(self) -> Dict[str, Any]:
-        """
-        Get comprehensive status of the supervisor node.
-        
-        Returns:
-            Dictionary containing supervisor status information
-        """
         try:
             return {
                 'supervisor_id': self.supervisor_id,
@@ -682,17 +521,6 @@ class SupervisorNode:
             }
     
     def handle_failure(self, agent_id: str, task_id: str = None, failure_reason: str = None) -> bool:
-        """
-        Handle agent or task failure and implement recovery strategies.
-        
-        Args:
-            agent_id: ID of the failed agent
-            task_id: Optional ID of the failed task
-            failure_reason: Optional description of the failure
-            
-        Returns:
-            True if failure was handled successfully, False otherwise
-        """
         try:
             logger.warning(f"Handling failure for agent {agent_id}, task {task_id}: {failure_reason}")
             
@@ -723,16 +551,6 @@ class SupervisorNode:
             return False
     
     def _handle_task_reassignment(self, task_id: str, failed_agent_id: str) -> bool:
-        """
-        Handle reassignment of a task when an agent fails.
-        
-        Args:
-            task_id: ID of the task to reassign
-            failed_agent_id: ID of the agent that failed
-            
-        Returns:
-            True if task was reassigned, False otherwise
-        """
         try:
             # Create a mock task for reassignment (in a real system, this would come from task storage)
             reassignment_task = Task(

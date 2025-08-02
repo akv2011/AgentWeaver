@@ -1,9 +1,3 @@
-"""
-Data Processing Worker Agent for AgentWeaver.
-
-This module implements a worker agent specialized in numerical data processing
-and statistical calculations.
-"""
 
 from typing import Dict, Any, List, Union, Optional
 import logging
@@ -19,20 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class DataProcessingAgent(BaseWorkerAgent):
-    """
-    Worker agent specialized in data processing and statistical analysis.
-    
-    This agent can perform calculations on numerical data, compute statistics,
-    and process datasets in various formats.
-    """
     
     def __init__(self, name: str = "DataProcessor"):
-        """
-        Initialize the Data Processing Agent.
-        
-        Args:
-            name: Name for this agent instance
-        """
         capabilities = [AgentCapability.DATA_PROCESSING, AgentCapability.ANALYSIS]
         super().__init__(name, capabilities, "data_processor")
         
@@ -43,20 +25,6 @@ class DataProcessingAgent(BaseWorkerAgent):
         self.logger.info(f"Data Processing Agent '{name}' initialized")
     
     def execute(self, task: Task, context: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute a data processing task.
-        
-        Args:
-            task: The task to execute
-            context: Additional context data from the graph state
-            
-        Returns:
-            Dictionary containing the processing results
-            
-        Raises:
-            ValueError: If required input parameters are missing or invalid
-            Exception: If data processing fails
-        """
         start_time = datetime.utcnow()
         
         try:
@@ -125,18 +93,6 @@ class DataProcessingAgent(BaseWorkerAgent):
             }
     
     def _prepare_data(self, data: Any) -> List[float]:
-        """
-        Prepare and validate input data for processing.
-        
-        Args:
-            data: Input data in various formats
-            
-        Returns:
-            List of numerical values
-            
-        Raises:
-            ValueError: If data cannot be converted to numerical format
-        """
         processed_data = []
         
         # Handle different data formats
@@ -186,16 +142,6 @@ class DataProcessingAgent(BaseWorkerAgent):
         return processed_data
     
     def _calculate_statistics(self, data: List[float], parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Calculate comprehensive statistics for the data.
-        
-        Args:
-            data: List of numerical values
-            parameters: Additional parameters for calculation
-            
-        Returns:
-            Dictionary containing statistical measures
-        """
         if not data:
             return {'error': 'No data to process'}
         
@@ -235,16 +181,6 @@ class DataProcessingAgent(BaseWorkerAgent):
         return result
     
     def _aggregate_data(self, data: List[float], parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Perform aggregation operations on the data.
-        
-        Args:
-            data: List of numerical values
-            parameters: Aggregation parameters
-            
-        Returns:
-            Dictionary containing aggregated results
-        """
         operations = parameters.get('operations', ['sum', 'mean', 'count'])
         
         result = {}
@@ -268,16 +204,6 @@ class DataProcessingAgent(BaseWorkerAgent):
         return result
     
     def _filter_data(self, data: List[float], parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Filter data based on specified criteria.
-        
-        Args:
-            data: List of numerical values
-            parameters: Filter parameters
-            
-        Returns:
-            Dictionary containing filtered data and metadata
-        """
         condition = parameters.get('condition', 'greater_than')
         threshold = parameters.get('threshold', 0.0)
         
@@ -316,16 +242,6 @@ class DataProcessingAgent(BaseWorkerAgent):
         }
     
     def _transform_data(self, data: List[float], parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Transform data using mathematical operations.
-        
-        Args:
-            data: List of numerical values
-            parameters: Transformation parameters
-            
-        Returns:
-            Dictionary containing transformed data
-        """
         transformation = parameters.get('transformation', 'normalize')
         
         if transformation == 'normalize':
@@ -390,16 +306,6 @@ class DataProcessingAgent(BaseWorkerAgent):
         }
     
     def _analyze_distribution(self, data: List[float], parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Analyze the distribution of the data.
-        
-        Args:
-            data: List of numerical values
-            parameters: Analysis parameters
-            
-        Returns:
-            Dictionary containing distribution analysis
-        """
         num_bins = parameters.get('num_bins', 10)
         
         # Create histogram
@@ -446,15 +352,6 @@ class DataProcessingAgent(BaseWorkerAgent):
         }
     
     def can_handle_task(self, task: Task) -> bool:
-        """
-        Check if this agent can handle the given task.
-        
-        Args:
-            task: The task to check
-            
-        Returns:
-            True if the agent can handle data processing tasks
-        """
         # Check if it's a data processing task
         if task.task_type in ['data_processing', 'calculate_statistics', 'analysis']:
             return True
@@ -467,12 +364,6 @@ class DataProcessingAgent(BaseWorkerAgent):
         return super().can_handle_task(task)
     
     def health_check(self) -> bool:
-        """
-        Perform a health check specific to data processing capabilities.
-        
-        Returns:
-            True if the agent is healthy and can process data
-        """
         try:
             # Basic health check from parent
             if not super().health_check():

@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""
-AgentWeaver Live Integration Test - Perfect Version
-=================================================
-
-This test proves AgentWeaver is fully operational and ready for production.
-"""
 
 import sys
 import os
@@ -15,7 +9,6 @@ from datetime import datetime
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 def test_live_agentweaver_perfect():
-    """Test live AgentWeaver components - perfect implementation"""
     
     print("🚀 AGENTWEAVER LIVE INTEGRATION TEST - PERFECT")
     print("=" * 55)

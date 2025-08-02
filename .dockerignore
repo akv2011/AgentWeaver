@@ -1,9 +1,9 @@
-# Byte-compiled / optimized / DLL files
+# Python bytecode I don't need in my container
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Distribution / packaging
+# Build artifacts
 .Python
 build/
 develop-eggs/
@@ -21,15 +21,13 @@ wheels/
 .installed.cfg
 *.egg
 
-# PyInstaller
+# Installer stuff
 *.manifest
 *.spec
-
-# Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Test artifacts I don't need
 htmlcov/
 .tox/
 .coverage
@@ -41,7 +39,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Environments
+# Environment files stay out of container
 .env
 .venv
 env/

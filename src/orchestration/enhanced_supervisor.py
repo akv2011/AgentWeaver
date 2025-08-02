@@ -1,9 +1,3 @@
-"""
-Enhanced Communication Protocol for AgentWeaver Supervisor.
-
-This module extends the supervisor to properly dispatch tasks to worker agents
-and manage the communication protocol using LangGraph's state management.
-"""
 
 from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime
@@ -28,20 +22,8 @@ logger = logging.getLogger(__name__)
 
 
 class EnhancedSupervisor:
-    """
-    Enhanced Supervisor with worker agent communication protocol.
-    
-    This class extends the basic supervisor to properly integrate with
-    worker agents and manage task dispatch through LangGraph state management.
-    """
     
     def __init__(self, checkpointer: Optional[MemorySaver] = None):
-        """
-        Initialize the Enhanced Supervisor.
-        
-        Args:
-            checkpointer: Optional MemorySaver for state persistence
-        """
         self.checkpointer = checkpointer or MemorySaver()
         self.agent_registry: Dict[str, AgentState] = {}
         self.worker_agents: Dict[str, BaseWorkerAgent] = {}
@@ -52,7 +34,6 @@ class EnhancedSupervisor:
         logger.info("Enhanced Supervisor initialized")
     
     def _setup_enhanced_graph(self):
-        """Set up the enhanced LangGraph with worker agent communication."""
         # Create the graph with enhanced state
         graph = StateGraph(dict)
         
@@ -67,7 +48,6 @@ class EnhancedSupervisor:
         
         # Define routing function for task dispatch
         def route_to_worker(state: Dict[str, Any]) -> str:
-            """Route tasks to appropriate worker based on task type and agent selection."""
             next_agent = state.get("next_agent")
             
             if next_agent == "text_analysis":
@@ -111,15 +91,6 @@ class EnhancedSupervisor:
         logger.info("Enhanced supervisor graph compiled successfully")
     
     def _supervisor_dispatch_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Enhanced supervisor node that selects agents and dispatches tasks.
-        
-        Args:
-            state: Current graph state
-            
-        Returns:
-            Updated state with task assignment and next agent selection
-        """
         try:
             # Get task from state
             task_data = state.get("task_to_assign")
@@ -189,15 +160,6 @@ class EnhancedSupervisor:
         return state
     
     def _select_worker_for_task(self, task: Task) -> Optional[str]:
-        """
-        Select the most appropriate worker agent for a given task.
-        
-        Args:
-            task: Task to assign
-            
-        Returns:
-            Worker agent identifier or None if no suitable agent
-        """
         # Task type to worker mapping
         task_type_mapping = {
             "text_analysis": "text_analysis",
@@ -226,52 +188,15 @@ class EnhancedSupervisor:
         return None
     
     def _text_analysis_worker_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        LangGraph node for text analysis worker.
-        
-        Args:
-            state: Current graph state
-            
-        Returns:
-            Updated state with text analysis results
-        """
         return self._execute_worker_task(state, "text_analysis")
     
     def _api_interaction_worker_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        LangGraph node for API interaction worker.
-        
-        Args:
-            state: Current graph state
-            
-        Returns:
-            Updated state with API interaction results
-        """
         return self._execute_worker_task(state, "api_interaction")
     
     def _data_processing_worker_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        LangGraph node for data processing worker.
-        
-        Args:
-            state: Current graph state
-            
-        Returns:
-            Updated state with data processing results
-        """
         return self._execute_worker_task(state, "data_processing")
     
     def _execute_worker_task(self, state: Dict[str, Any], worker_type: str) -> Dict[str, Any]:
-        """
-        Execute a task using the specified worker agent.
-        
-        Args:
-            state: Current graph state
-            worker_type: Type of worker to execute
-            
-        Returns:
-            Updated state with execution results
-        """
         try:
             current_task = state.get("current_task")
             if not current_task:
@@ -324,15 +249,6 @@ class EnhancedSupervisor:
         return state
     
     def _process_task_result_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Process the results from worker agent execution.
-        
-        Args:
-            state: Current graph state with task results
-            
-        Returns:
-            Final state with processed results
-        """
         try:
             task_result = state.get("task_result")
             current_task = state.get("current_task")
@@ -371,12 +287,6 @@ class EnhancedSupervisor:
         return state
     
     def register_worker_agents(self) -> Dict[str, Any]:
-        """
-        Register all worker agents with the supervisor.
-        
-        Returns:
-            Registration results
-        """
         try:
             # Create worker agent instances
             text_agent = TextAnalysisAgent("MainTextAnalyzer")
@@ -414,16 +324,6 @@ class EnhancedSupervisor:
             return {"success": False, "error": str(e)}
     
     def dispatch_task(self, task_data: Dict[str, Any], thread_id: str = "main") -> Dict[str, Any]:
-        """
-        Dispatch a task through the enhanced communication protocol.
-        
-        Args:
-            task_data: Task information to dispatch
-            thread_id: Thread ID for state management
-            
-        Returns:
-            Task execution results
-        """
         try:
             initial_state = {
                 "task_to_assign": task_data,
@@ -440,12 +340,6 @@ class EnhancedSupervisor:
             return {"status": "error", "error": str(e)}
     
     def get_system_status(self) -> Dict[str, Any]:
-        """
-        Get current system status and metrics.
-        
-        Returns:
-            System status information
-        """
         return {
             "supervisor_active": True,
             "registered_agents": len(self.worker_agents),

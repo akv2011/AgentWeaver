@@ -1,9 +1,3 @@
-"""
-Hierarchical Agent Management for AgentWeaver
-
-This module implements hierarchical agent structures where team leads
-can manage sub-teams of agents, delegate tasks, and coordinate complex workflows.
-"""
 
 from typing import Dict, Any, Optional, List, Union, Tuple
 from datetime import datetime, timedelta
@@ -27,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 
 class TeamRole(Enum):
-    """Roles within a hierarchical team structure."""
     SUPERVISOR = "supervisor"
     TEAM_LEAD = "team_lead"
     SPECIALIST = "specialist"
@@ -36,12 +29,6 @@ class TeamRole(Enum):
 
 
 class TeamStructure(BaseModel):
-    """
-    Defines a hierarchical team structure.
-    
-    Represents the organizational hierarchy of agents with
-    their roles, reporting relationships, and capabilities.
-    """
     
     team_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     team_name: str
@@ -61,7 +48,6 @@ class TeamStructure(BaseModel):
     completed_tasks: List[str] = Field(default_factory=list)
     
     def add_member(self, agent_id: str, role: TeamRole, capabilities: List[str] = None):
-        """Add a member to the team."""
         self.members[agent_id] = role.value
         if capabilities:
             self.specializations[agent_id] = capabilities
@@ -71,24 +57,18 @@ class TeamStructure(BaseModel):
                     self.team_capabilities.append(cap)
     
     def get_members_by_role(self, role: TeamRole) -> List[str]:
-        """Get all members with a specific role."""
         return [agent_id for agent_id, agent_role in self.members.items() 
                 if agent_role == role.value]
     
     def get_available_capabilities(self) -> List[str]:
-        """Get all capabilities available in the team."""
         return self.team_capabilities.copy()
     
     def find_agents_with_capability(self, capability: str) -> List[str]:
-        """Find agents that have a specific capability."""
         return [agent_id for agent_id, caps in self.specializations.items() 
                 if capability in caps]
 
 
 class TaskDelegation(BaseModel):
-    """
-    Represents a delegated task within a hierarchical structure.
-    """
     
     delegation_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     parent_task_id: Optional[str] = None
@@ -114,7 +94,6 @@ class TaskDelegation(BaseModel):
     last_update: datetime = Field(default_factory=datetime.utcnow)
     
     def add_progress_report(self, report_data: Dict[str, Any]):
-        """Add a progress report to the delegation."""
         report = {
             "timestamp": datetime.utcnow().isoformat(),
             "data": report_data
@@ -123,19 +102,12 @@ class TaskDelegation(BaseModel):
         self.last_update = datetime.utcnow()
     
     def is_overdue(self) -> bool:
-        """Check if the delegation is overdue."""
         if not self.deadline:
             return False
         return datetime.utcnow() > self.deadline
 
 
 class HierarchicalWorkflowState(BaseModel):
-    """
-    Enhanced state schema for hierarchical workflows.
-    
-    Extends the basic workflow state to support team coordination,
-    task delegation, and hierarchical communication.
-    """
     
     # Workflow identification
     workflow_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -174,21 +146,8 @@ class HierarchicalWorkflowState(BaseModel):
 
 
 class TeamLeadAgent:
-    """
-    Team Lead Agent that manages a sub-team of specialist agents.
-    
-    This agent coordinates task distribution, monitors progress,
-    and consolidates results from team members.
-    """
     
     def __init__(self, agent_id: str, team_structure: TeamStructure):
-        """
-        Initialize a Team Lead Agent.
-        
-        Args:
-            agent_id: Unique identifier for this team lead
-            team_structure: The team structure this agent manages
-        """
         self.agent_id = agent_id
         self.team_structure = team_structure
         self.active_delegations: Dict[str, TaskDelegation] = {}
@@ -201,18 +160,6 @@ class TeamLeadAgent:
     
     def delegate_task(self, task_description: str, task_parameters: Dict[str, Any],
                      required_capability: str, deadline: Optional[datetime] = None) -> Optional[TaskDelegation]:
-        """
-        Delegate a task to a team member with the required capability.
-        
-        Args:
-            task_description: Description of the task to delegate
-            task_parameters: Parameters needed for the task
-            required_capability: Capability required to complete the task
-            deadline: Optional deadline for task completion
-            
-        Returns:
-            TaskDelegation object if successful, None otherwise
-        """
         # Find suitable team members
         suitable_agents = self.team_structure.find_agents_with_capability(required_capability)
         
@@ -253,12 +200,6 @@ class TeamLeadAgent:
             return None
     
     def process_incoming_messages(self) -> List[Dict[str, Any]]:
-        """
-        Process incoming messages from team members.
-        
-        Returns:
-            List of processed message summaries
-        """
         messages = self.p2p_manager.get_messages_for_agent(self.agent_id)
         processed_summaries = []
         
@@ -273,7 +214,6 @@ class TeamLeadAgent:
         return processed_summaries
     
     def _process_message(self, message: AgentMessage) -> Optional[Dict[str, Any]]:
-        """Process a single incoming message."""
         try:
             if message.message_type == MessageType.REPORT:
                 return self._handle_status_report(message)
@@ -294,7 +234,6 @@ class TeamLeadAgent:
             return None
     
     def _handle_status_report(self, message: AgentMessage) -> Dict[str, Any]:
-        """Handle a status report from a team member."""
         content = message.content
         task_id = content.get("task_id")
         status = content.get("status")
@@ -325,7 +264,6 @@ class TeamLeadAgent:
         }
     
     def _handle_task_response(self, message: AgentMessage) -> Dict[str, Any]:
-        """Handle a task completion response."""
         content = message.content
         
         # Update delegation status
@@ -342,7 +280,6 @@ class TeamLeadAgent:
         }
     
     def _handle_request(self, message: AgentMessage) -> Dict[str, Any]:
-        """Handle a request from a team member."""
         # Could handle requests for resources, clarification, etc.
         return {
             "type": "request",
@@ -352,7 +289,6 @@ class TeamLeadAgent:
         }
     
     def get_team_status(self) -> Dict[str, Any]:
-        """Get the current status of the team and active delegations."""
         active_count = len([d for d in self.active_delegations.values() if d.status in ["assigned", "in_progress"]])
         completed_count = len([d for d in self.active_delegations.values() if d.status == "completed"])
         overdue_count = len([d for d in self.active_delegations.values() if d.is_overdue()])
@@ -379,20 +315,8 @@ class TeamLeadAgent:
 
 
 class HierarchicalWorkflowOrchestrator:
-    """
-    Orchestrates hierarchical workflows with team-based task execution.
-    
-    This orchestrator manages complex workflows that involve multiple
-    teams, task delegation, and hierarchical coordination.
-    """
     
     def __init__(self, use_redis: bool = True):
-        """
-        Initialize the Hierarchical Workflow Orchestrator.
-        
-        Args:
-            use_redis: Whether to use Redis for persistent state
-        """
         # Initialize persistent state management
         if use_redis:
             try:
@@ -416,7 +340,6 @@ class HierarchicalWorkflowOrchestrator:
         logger.info("Hierarchical Workflow Orchestrator initialized")
     
     def _initialize_worker_agents(self) -> Dict[str, Any]:
-        """Initialize worker agents for hierarchical workflows."""
         return {
             # Analysis Team
             "senior_text_analyst": TextAnalysisAgent("SeniorTextAnalyst"),
@@ -435,7 +358,6 @@ class HierarchicalWorkflowOrchestrator:
         }
     
     def _setup_default_teams(self):
-        """Set up default team structures."""
         # Analysis Team
         analysis_team = TeamStructure(
             team_name="Analysis Team",
@@ -473,15 +395,6 @@ class HierarchicalWorkflowOrchestrator:
         logger.info(f"Created {len(self.teams)} teams with {len(self.team_leads)} team leads")
     
     def create_hierarchical_workflow(self, main_task: Dict[str, Any]) -> StateGraph:
-        """
-        Create a hierarchical workflow graph.
-        
-        Args:
-            main_task: The main task to be executed hierarchically
-            
-        Returns:
-            Compiled StateGraph for hierarchical execution
-        """
         # Create the graph
         graph = StateGraph(dict)
         
@@ -528,16 +441,6 @@ class HierarchicalWorkflowOrchestrator:
     
     def execute_hierarchical_workflow(self, main_task: Dict[str, Any], 
                                     thread_id: str = "hierarchical_workflow") -> Dict[str, Any]:
-        """
-        Execute a hierarchical workflow with team coordination.
-        
-        Args:
-            main_task: The main task to execute
-            thread_id: Thread ID for state management
-            
-        Returns:
-            Final workflow results
-        """
         try:
             # Create workflow graph
             workflow_graph = self.create_hierarchical_workflow(main_task)
@@ -567,7 +470,6 @@ class HierarchicalWorkflowOrchestrator:
     
     # Node implementations will be added in the next part
     def _coordinator_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Workflow coordinator node - initializes hierarchical execution."""
         logger.info("Hierarchical Workflow: Coordinator initializing")
         
         state["status"] = "coordinating"
@@ -589,7 +491,6 @@ class HierarchicalWorkflowOrchestrator:
         return state
     
     def _task_analyzer_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Analyze the main task and break it into sub-tasks."""
         logger.info("Hierarchical Workflow: Analyzing main task")
         
         main_task = state.get("main_task", {})
@@ -629,7 +530,6 @@ class HierarchicalWorkflowOrchestrator:
         return state
     
     def _team_assignment_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Assign sub-tasks to appropriate teams."""
         logger.info("Hierarchical Workflow: Assigning tasks to teams")
         
         sub_tasks = state.get("sub_tasks", {})
@@ -662,7 +562,6 @@ class HierarchicalWorkflowOrchestrator:
         return state
     
     def _parallel_execution_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute tasks in parallel across teams."""
         logger.info("Hierarchical Workflow: Executing tasks in parallel")
         
         state["status"] = "executing"
@@ -692,7 +591,6 @@ class HierarchicalWorkflowOrchestrator:
         return state
     
     def _progress_monitor_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Monitor progress of all delegated tasks."""
         logger.info("Hierarchical Workflow: Monitoring task progress")
         
         partial_results = state.get("partial_results", {})
@@ -720,7 +618,6 @@ class HierarchicalWorkflowOrchestrator:
         return state
     
     def _result_consolidator_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Consolidate results from all team executions."""
         logger.info("Hierarchical Workflow: Consolidating results")
         
         partial_results = state.get("partial_results", {})
@@ -748,7 +645,6 @@ class HierarchicalWorkflowOrchestrator:
         return state
     
     def _workflow_finalizer_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Finalize the hierarchical workflow execution."""
         logger.info("Hierarchical Workflow: Finalizing execution")
         
         # Calculate execution time
@@ -776,7 +672,6 @@ class HierarchicalWorkflowOrchestrator:
         return state
     
     def get_system_status(self) -> Dict[str, Any]:
-        """Get the current status of the hierarchical system."""
         team_statuses = {}
         for team_id, team_lead in self.team_leads.items():
             team_statuses[team_id] = team_lead.get_team_status()
@@ -798,18 +693,6 @@ class HierarchicalWorkflowOrchestrator:
     
     def send_message(self, sender_id: str, recipient_id: str, content: Dict[str, Any], 
                     subject: str = "Hierarchical Communication") -> bool:
-        """
-        Send a message through the hierarchical communication system.
-        
-        Args:
-            sender_id: ID of the sender
-            recipient_id: ID of the recipient
-            content: Message content
-            subject: Message subject
-            
-        Returns:
-            True if message was sent successfully, False otherwise
-        """
         try:
             message = AgentMessage(
                 sender_id=sender_id,
@@ -827,17 +710,6 @@ class HierarchicalWorkflowOrchestrator:
     
     def broadcast_message(self, sender_id: str, content: Dict[str, Any], 
                          subject: str = "Team Broadcast") -> bool:
-        """
-        Broadcast a message to all team members.
-        
-        Args:
-            sender_id: ID of the broadcasting agent
-            content: Message content
-            subject: Message subject
-            
-        Returns:
-            True if broadcast was successful, False otherwise
-        """
         try:
             return self.p2p_manager.broadcast_message(sender_id, content, subject)
             
@@ -846,16 +718,6 @@ class HierarchicalWorkflowOrchestrator:
             return False
     
     def route_message(self, message: AgentMessage, team_id: Optional[str] = None) -> bool:
-        """
-        Route a message within the hierarchical structure.
-        
-        Args:
-            message: The message to route
-            team_id: Optional team ID for team-specific routing
-            
-        Returns:
-            True if message was routed successfully, False otherwise
-        """
         try:
             routing_rules = {}
             

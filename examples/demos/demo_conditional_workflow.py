@@ -1,8 +1,3 @@
-"""
-Live Demo of the Advanced Conditional Workflow
-
-This script demonstrates the conditional workflow with different routing scenarios.
-"""
 
 import sys
 import os
@@ -13,7 +8,6 @@ import json
 import time
 
 def run_conditional_workflow_demo():
-    """Run a comprehensive demo of the conditional workflow."""
     
     print("🚀 AgentWeaver Conditional Workflow Demo")
     print("=" * 50)

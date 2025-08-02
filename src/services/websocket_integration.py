@@ -1,8 +1,3 @@
-"""
-WebSocket Integration Service
-
-Integrates LangGraph state changes with WebSocket broadcasting for real-time updates.
-"""
 
 import asyncio
 import logging
@@ -13,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 
 class WebSocketIntegrationService:
-    """Service to integrate workflow events with WebSocket broadcasting."""
     
     def __init__(self, websocket_manager=None):
         self.websocket_manager = websocket_manager
@@ -21,11 +15,9 @@ class WebSocketIntegrationService:
         self.agent_states = {}
         
     def set_websocket_manager(self, manager):
-        """Set the WebSocket manager instance."""
         self.websocket_manager = manager
         
     async def notify_workflow_started(self, workflow_id: str, workflow_data: Dict[str, Any]):
-        """Notify clients when a workflow starts."""
         if not self.websocket_manager:
             return
             
@@ -64,7 +56,6 @@ class WebSocketIntegrationService:
             logger.error(f"Error broadcasting workflow start for {workflow_id}: {e}")
     
     async def notify_workflow_step(self, workflow_id: str, step_name: str, step_data: Dict[str, Any] = None):
-        """Notify clients when a workflow step is executed."""
         if not self.websocket_manager:
             return
             
@@ -97,7 +88,6 @@ class WebSocketIntegrationService:
             logger.error(f"Error broadcasting workflow step for {workflow_id}: {e}")
     
     async def notify_workflow_completed(self, workflow_id: str, result: Dict[str, Any]):
-        """Notify clients when a workflow completes."""
         if not self.websocket_manager:
             return
             
@@ -140,7 +130,6 @@ class WebSocketIntegrationService:
             logger.error(f"Error broadcasting workflow completion for {workflow_id}: {e}")
     
     async def notify_workflow_failed(self, workflow_id: str, error: str, error_details: Dict[str, Any] = None):
-        """Notify clients when a workflow fails."""
         if not self.websocket_manager:
             return
             
@@ -178,7 +167,6 @@ class WebSocketIntegrationService:
             logger.error(f"Error broadcasting workflow failure for {workflow_id}: {e}")
     
     async def notify_agent_status_change(self, agent_id: str, old_status: str, new_status: str, details: Dict[str, Any] = None):
-        """Notify clients when an agent status changes."""
         if not self.websocket_manager:
             return
             
@@ -211,7 +199,6 @@ class WebSocketIntegrationService:
             logger.error(f"Error broadcasting agent status change for {agent_id}: {e}")
     
     async def notify_system_event(self, event_type: str, message: str, level: str = "info", details: Dict[str, Any] = None):
-        """Notify clients of system events."""
         if not self.websocket_manager:
             return
             
@@ -232,7 +219,6 @@ class WebSocketIntegrationService:
             logger.error(f"Error broadcasting system event {event_type}: {e}")
     
     def _summarize_input(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a summary of input data for broadcasting."""
         summary = {}
         
         if "text" in input_data:
@@ -247,7 +233,6 @@ class WebSocketIntegrationService:
         return summary
     
     def _summarize_result(self, result: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a summary of result data for broadcasting."""
         summary = {}
         
         if "status" in result:
@@ -266,14 +251,12 @@ class WebSocketIntegrationService:
         return summary
     
     async def _cleanup_workflow(self, workflow_id: str, delay: int = 300):
-        """Clean up workflow data after a delay."""
         await asyncio.sleep(delay)
         if workflow_id in self.active_workflows:
             del self.active_workflows[workflow_id]
             logger.info(f"Cleaned up workflow data for {workflow_id}")
     
     def get_system_status(self) -> Dict[str, Any]:
-        """Get current system status for broadcasting."""
         active_workflows = [w for w in self.active_workflows.values() if w.get("status") in ["running", "pending"]]
         completed_workflows = [w for w in self.active_workflows.values() if w.get("status") == "completed"]
         failed_workflows = [w for w in self.active_workflows.values() if w.get("status") == "failed"]

@@ -1,9 +1,3 @@
-"""
-API Interaction Worker Agent for AgentWeaver.
-
-This module implements a worker agent specialized in making HTTP requests
-and interacting with external APIs.
-"""
 
 from typing import Dict, Any, Optional, List
 import logging
@@ -20,20 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 class APIInteractionAgent(BaseWorkerAgent):
-    """
-    Worker agent specialized in API interactions and HTTP requests.
-    
-    This agent can fetch data from external APIs, handle authentication,
-    and process responses in various formats.
-    """
     
     def __init__(self, name: str = "APIFetcher"):
-        """
-        Initialize the API Interaction Agent.
-        
-        Args:
-            name: Name for this agent instance
-        """
         capabilities = [AgentCapability.COMMUNICATION, AgentCapability.DATA_PROCESSING]
         super().__init__(name, capabilities, "api_client")
         
@@ -51,20 +33,6 @@ class APIInteractionAgent(BaseWorkerAgent):
         self.logger.info(f"API Interaction Agent '{name}' initialized")
     
     def execute(self, task: Task, context: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute an API interaction task.
-        
-        Args:
-            task: The task to execute
-            context: Additional context data from the graph state
-            
-        Returns:
-            Dictionary containing the API response and metadata
-            
-        Raises:
-            ValueError: If required parameters are missing
-            Exception: If API request fails
-        """
         start_time = datetime.utcnow()
         
         try:
@@ -151,20 +119,6 @@ class APIInteractionAgent(BaseWorkerAgent):
             }
     
     def _make_request_with_retry(self, method: str, url: str, **kwargs) -> requests.Response:
-        """
-        Make HTTP request with retry logic.
-        
-        Args:
-            method: HTTP method
-            url: Target URL
-            **kwargs: Request parameters
-            
-        Returns:
-            Response object
-            
-        Raises:
-            requests.RequestException: If all retries fail
-        """
         last_exception = None
         
         for attempt in range(self.max_retries):
@@ -191,15 +145,6 @@ class APIInteractionAgent(BaseWorkerAgent):
         raise last_exception or requests.RequestException("All retry attempts failed")
     
     def _process_response(self, response: requests.Response) -> Dict[str, Any]:
-        """
-        Process the HTTP response and extract data.
-        
-        Args:
-            response: Response object
-            
-        Returns:
-            Processed response data
-        """
         result = {
             'headers': dict(response.headers),
             'encoding': response.encoding,
@@ -233,15 +178,6 @@ class APIInteractionAgent(BaseWorkerAgent):
         return result
     
     def _is_valid_url(self, url: str) -> bool:
-        """
-        Validate URL format.
-        
-        Args:
-            url: URL to validate
-            
-        Returns:
-            True if URL is valid, False otherwise
-        """
         try:
             result = urlparse(url)
             return all([result.scheme, result.netloc])
@@ -249,15 +185,6 @@ class APIInteractionAgent(BaseWorkerAgent):
             return False
     
     def can_handle_task(self, task: Task) -> bool:
-        """
-        Check if this agent can handle the given task.
-        
-        Args:
-            task: The task to check
-            
-        Returns:
-            True if the agent can handle API interaction tasks
-        """
         # Check if it's an API task
         if task.task_type in ['api_request', 'fetch_data', 'http_request']:
             return True
@@ -270,12 +197,6 @@ class APIInteractionAgent(BaseWorkerAgent):
         return super().can_handle_task(task)
     
     def health_check(self) -> bool:
-        """
-        Perform a health check specific to API interaction capabilities.
-        
-        Returns:
-            True if the agent is healthy and can make API requests
-        """
         try:
             # Basic health check from parent
             if not super().health_check():
@@ -304,27 +225,14 @@ class APIInteractionAgent(BaseWorkerAgent):
             return False
     
     def set_custom_headers(self, headers: Dict[str, str]) -> None:
-        """
-        Set custom headers for all requests.
-        
-        Args:
-            headers: Dictionary of headers to add
-        """
         self.session.headers.update(headers)
         self.logger.info(f"Updated session headers: {list(headers.keys())}")
     
     def set_timeout(self, timeout: int) -> None:
-        """
-        Set default timeout for requests.
-        
-        Args:
-            timeout: Timeout in seconds
-        """
         self.timeout = timeout
         self.logger.info(f"Updated default timeout to {timeout}s")
     
     def clear_session(self) -> None:
-        """Clear the session and create a new one."""
         self.session.close()
         self.session = requests.Session()
         self.session.headers.update({
@@ -334,7 +242,6 @@ class APIInteractionAgent(BaseWorkerAgent):
         self.logger.info("Session cleared and reset")
     
     def __del__(self):
-        """Cleanup when agent is destroyed."""
         try:
             self.session.close()
         except Exception:

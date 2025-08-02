@@ -1,9 +1,3 @@
-"""
-Linear Workflow Implementation for AgentWeaver.
-
-This module implements a basic linear workflow that chains multiple worker agents
-together to demonstrate end-to-end functionality and error handling.
-"""
 
 from typing import Dict, Any, Optional, List
 from datetime import datetime
@@ -20,43 +14,30 @@ logger = logging.getLogger(__name__)
 
 
 class WorkflowState(BaseModel):
-    """
-    State schema for the linear workflow.
     
-    This defines the structure of data that flows between nodes
-    in the linear workflow graph.
-    """
-    
-    # Workflow identification
     workflow_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     workflow_name: str = "Basic Linear Workflow"
     
-    # Input data
     initial_input: Dict[str, Any] = Field(default_factory=dict)
     
-    # Step tracking
     current_step: str = "start"
     completed_steps: List[str] = Field(default_factory=list)
     step_results: Dict[str, Any] = Field(default_factory=dict)
     
-    # Agent data flow
-    step1_data: Optional[Dict[str, Any]] = None  # Data from first worker
-    step2_data: Optional[Dict[str, Any]] = None  # Data from second worker
+    step1_data: Optional[Dict[str, Any]] = None
+    step2_data: Optional[Dict[str, Any]] = None
     final_result: Optional[Dict[str, Any]] = None
     
-    # Error handling
     error_occurred: bool = False
     error_message: Optional[str] = None
     error_step: Optional[str] = None
     error_details: Optional[Dict[str, Any]] = None
     
-    # Metadata
     workflow_start_time: datetime = Field(default_factory=datetime.utcnow)
     workflow_end_time: Optional[datetime] = None
     total_execution_time: Optional[float] = None
     
-    # Status tracking
-    status: str = "running"  # running, completed, failed
+    status: str = "running"
     
     class Config:
         extra = "forbid"
@@ -66,20 +47,8 @@ class WorkflowState(BaseModel):
 
 
 class LinearWorkflowOrchestrator:
-    """
-    Orchestrates a linear workflow with multiple worker agents.
-    
-    This class manages the execution of a predefined sequence of agents
-    to process data through multiple stages with comprehensive error handling.
-    """
     
     def __init__(self, checkpointer: Optional[MemorySaver] = None):
-        """
-        Initialize the Linear Workflow Orchestrator.
-        
-        Args:
-            checkpointer: Optional MemorySaver for state persistence
-        """
         self.checkpointer = checkpointer or MemorySaver()
         self.worker_agents = self._initialize_worker_agents()
         self.workflow_graph = None
@@ -88,12 +57,6 @@ class LinearWorkflowOrchestrator:
         logger.info("Linear Workflow Orchestrator initialized")
     
     def _initialize_worker_agents(self) -> Dict[str, Any]:
-        """
-        Initialize the worker agents for the workflow.
-        
-        Returns:
-            Dictionary of initialized worker agents
-        """
         return {
             "text_analyzer": TextAnalysisAgent("WorkflowTextAnalyzer"),
             "api_client": APIInteractionAgent("WorkflowAPIClient"),
@@ -101,11 +64,8 @@ class LinearWorkflowOrchestrator:
         }
     
     def _setup_workflow_graph(self):
-        """Set up the linear workflow graph with LangGraph."""
-        # Create the graph with WorkflowState
-        graph = StateGraph(dict)  # Using dict for LangGraph compatibility
+        graph = StateGraph(dict)
         
-        # Add workflow nodes
         graph.add_node("supervisor", self._supervisor_node)
         graph.add_node("step1_text_analysis", self._step1_text_analysis_node)
         graph.add_node("step2_data_enrichment", self._step2_data_enrichment_node)
@@ -113,12 +73,9 @@ class LinearWorkflowOrchestrator:
         graph.add_node("error_handler", self._error_handler_node)
         graph.add_node("workflow_finalizer", self._workflow_finalizer_node)
         
-        # Define linear workflow edges
         graph.add_edge(START, "supervisor")
         
-        # Define conditional routing from supervisor
         def route_from_supervisor(state: Dict[str, Any]) -> str:
-            """Route from supervisor based on validation."""
             if state.get("error_occurred"):
                 return "error_handler"
             return "step1_text_analysis"
@@ -132,7 +89,6 @@ class LinearWorkflowOrchestrator:
             }
         )
         
-        # Linear progression through steps with error handling
         def route_from_step1(state: Dict[str, Any]) -> str:
             return "error_handler" if state.get("error_occurred") else "step2_data_enrichment"
         
@@ -169,29 +125,17 @@ class LinearWorkflowOrchestrator:
             }
         )
         
-        # End points
         graph.add_edge("error_handler", "workflow_finalizer")
         graph.add_edge("workflow_finalizer", END)
         
-        # Compile the graph
         self.workflow_graph = graph.compile(checkpointer=self.checkpointer)
         
         logger.info("Linear workflow graph compiled successfully")
     
     def _supervisor_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Supervisor node that validates input and initiates the workflow.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Updated state with validation results
-        """
         try:
             logger.info("Supervisor: Validating workflow input and setting up execution")
             
-            # Initialize workflow tracking first
             state["current_step"] = "supervisor"
             state["completed_steps"] = []
             state["step_results"] = {}
@@ -199,11 +143,9 @@ class LinearWorkflowOrchestrator:
             state["status"] = "running"
             state["error_occurred"] = False
             
-            # Validate input
             if not state.get("initial_input"):
                 raise ValueError("No initial input provided for workflow")
             
-            # Add supervisor completion
             state["completed_steps"].append("supervisor")
             state["step_results"]["supervisor"] = {
                 "action": "input_validation",
@@ -219,34 +161,22 @@ class LinearWorkflowOrchestrator:
             state["error_message"] = f"Supervisor validation failed: {str(e)}"
             state["error_step"] = "supervisor"
             state["status"] = "failed"
-            # Ensure we have start time even on error
             if "workflow_start_time" not in state:
                 state["workflow_start_time"] = datetime.utcnow().isoformat()
         
         return state
     
     def _step1_text_analysis_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Step 1: Text analysis using TextAnalysisAgent.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Updated state with text analysis results
-        """
         try:
             logger.info("Step 1: Starting text analysis")
             state["current_step"] = "step1_text_analysis"
             
-            # Get input data
             input_data = state.get("initial_input", {})
             text_content = input_data.get("text", "")
             
             if not text_content:
                 raise ValueError("No text content provided for analysis")
             
-            # Create task for text analysis
             task = Task(
                 task_id=f"step1_{state.get('workflow_id', 'unknown')}",
                 title="Workflow Step 1: Text Analysis",
@@ -257,11 +187,9 @@ class LinearWorkflowOrchestrator:
                 }
             )
             
-            # Execute text analysis
             text_agent = self.worker_agents["text_analyzer"]
             result = text_agent.execute(task, state)
             
-            # Store results
             state["step1_data"] = result
             state["completed_steps"].append("step1_text_analysis")
             state["step_results"]["step1_text_analysis"] = {
@@ -284,15 +212,6 @@ class LinearWorkflowOrchestrator:
         return state
     
     def _step2_data_enrichment_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Step 2: Data enrichment using APIInteractionAgent.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Updated state with data enrichment results
-        """
         try:
             logger.info("Step 2: Starting data enrichment")
             state["current_step"] = "step2_data_enrichment"
@@ -350,15 +269,6 @@ class LinearWorkflowOrchestrator:
         return state
     
     def _step3_final_processing_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Step 3: Final processing using DataProcessingAgent.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Updated state with final processing results
-        """
         try:
             logger.info("Step 3: Starting final processing")
             state["current_step"] = "step3_final_processing"
@@ -420,15 +330,6 @@ class LinearWorkflowOrchestrator:
         return state
     
     def _error_handler_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Handle errors that occur during workflow execution.
-        
-        Args:
-            state: Current workflow state with error information
-            
-        Returns:
-            Updated state with error handling results
-        """
         try:
             logger.error(f"Error Handler: Processing error in step {state.get('error_step')}")
             
@@ -462,15 +363,6 @@ class LinearWorkflowOrchestrator:
         return state
     
     def _workflow_finalizer_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Finalize the workflow and calculate metrics.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Final state with completion metrics
-        """
         try:
             logger.info("Workflow Finalizer: Completing workflow execution")
             
@@ -517,16 +409,6 @@ class LinearWorkflowOrchestrator:
         return state
     
     def execute_workflow(self, input_data: Dict[str, Any], thread_id: str = "workflow") -> Dict[str, Any]:
-        """
-        Execute the complete linear workflow.
-        
-        Args:
-            input_data: Input data for the workflow
-            thread_id: Thread ID for state management
-            
-        Returns:
-            Final workflow results
-        """
         try:
             initial_state = {
                 "initial_input": input_data,
@@ -548,12 +430,6 @@ class LinearWorkflowOrchestrator:
             }
     
     def get_workflow_status(self) -> Dict[str, Any]:
-        """
-        Get the current status of the workflow orchestrator.
-        
-        Returns:
-            Status information
-        """
         return {
             "orchestrator_active": True,
             "workflow_graph_compiled": self.workflow_graph is not None,
@@ -565,17 +441,6 @@ class LinearWorkflowOrchestrator:
         }
     
     def add_step(self, step_name: str, agent_name: str, step_config: Dict[str, Any] = None) -> bool:
-        """
-        Add a new step to the workflow (for dynamic workflow modification).
-        
-        Args:
-            step_name: Name of the step to add
-            agent_name: Name of the agent to execute this step
-            step_config: Optional configuration for the step
-            
-        Returns:
-            True if step was added successfully, False otherwise
-        """
         try:
             if step_config is None:
                 step_config = {}
@@ -607,15 +472,6 @@ class LinearWorkflowOrchestrator:
             return False
     
     def get_status(self, workflow_id: str = None) -> Dict[str, Any]:
-        """
-        Get the status of a specific workflow execution or general orchestrator status.
-        
-        Args:
-            workflow_id: Optional workflow ID to get status for
-            
-        Returns:
-            Status information
-        """
         try:
             base_status = {
                 'orchestrator_status': 'active',

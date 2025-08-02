@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""
-AgentWeaver Test Runner
-======================
-
-Run all working tests in the test suite.
-"""
 
 import sys
 import os
@@ -15,7 +9,6 @@ import time
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 def run_test(test_file):
-    """Run a single test file and return success status"""
     print(f"\n{'='*60}")
     print(f"🧪 RUNNING: {test_file}")
     print(f"{'='*60}")
@@ -36,7 +29,6 @@ def run_test(test_file):
         return False
 
 def main():
-    """Run all working tests"""
     print("🚀 AGENTWEAVER TEST SUITE")
     print("=" * 40)
     print("Running all working tests...")

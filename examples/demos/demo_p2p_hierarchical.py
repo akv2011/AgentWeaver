@@ -1,9 +1,3 @@
-"""
-Peer-to-Peer and Hierarchical Communication Demo for AgentWeaver
-
-This script demonstrates advanced agent communication patterns including
-direct P2P messaging, hierarchical team coordination, and collaborative workflows.
-"""
 
 import sys
 import os
@@ -21,7 +15,6 @@ import time
 from datetime import datetime, timedelta
 
 def demo_p2p_communication():
-    """Demonstrate basic peer-to-peer communication between agents."""
     
     print("🤝 AgentWeaver P2P Communication Demo")
     print("=" * 50)
@@ -169,7 +162,6 @@ def demo_p2p_communication():
 
 
 def demo_hierarchical_workflow():
-    """Demonstrate hierarchical team-based workflow execution."""
     
     print(f"\n🏗️ AgentWeaver Hierarchical Workflow Demo")
     print("=" * 50)
@@ -271,7 +263,6 @@ def demo_hierarchical_workflow():
 
 
 def demo_advanced_collaboration():
-    """Demonstrate advanced collaborative patterns."""
     
     print(f"\n🌟 Advanced Collaboration Patterns Demo")
     print("=" * 50)
@@ -422,7 +413,6 @@ def demo_advanced_collaboration():
 
 
 def main():
-    """Run the complete P2P and Hierarchical Communication demo."""
     
     print("🚀 AgentWeaver Advanced Communication Demo")
     print("=" * 60)
