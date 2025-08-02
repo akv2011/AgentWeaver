@@ -26,8 +26,8 @@ import logging
 sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from src.supervisor import SupervisorNode
-from src.redis_config import RedisConnectionManager
+from src.orchestration.supervisor import SupervisorNode
+from src.core.redis_config import RedisConnectionManager
 from src.api.models import SystemStatusResponse
 
 # Configure logging

@@ -35,7 +35,7 @@ def test_imports():
         print("✅")
         
         print("  Importing supervisor...", end=" ")
-        from src.supervisor import SupervisorNode
+        from src.orchestration.supervisor import SupervisorNode
         print("✅")
         
         print("  Importing agent integration...", end=" ")

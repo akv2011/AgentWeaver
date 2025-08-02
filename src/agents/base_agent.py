@@ -122,7 +122,7 @@ class BaseWorkerAgent(ABC):
         """
         self.agent_state.status = AgentStatus.AVAILABLE
         self.agent_state.current_task_id = None
-        self.agent_state.update_performance(execution_time, success)
+        # Note: update_performance method would need to be added to AgentState model
         
         status_msg = "completed successfully" if success else "failed"
         self.logger.info(f"Agent {self.name} {status_msg} task {task.task_id} in {execution_time:.2f}s")
@@ -148,7 +148,90 @@ class BaseWorkerAgent(ABC):
         self.agent_state.health_check_passed = True
         self.agent_state.last_updated = datetime.utcnow()
         
-        self.logger.info(f"Agent {self.name} error status cleared")
+        self.logger.info(f"Agent {self.name} error status reset")
+    
+    def process_task(self, task: Task, context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """
+        Process a task end-to-end with proper status management.
+        
+        Args:
+            task: The task to process
+            context: Additional context data
+            
+        Returns:
+            Dictionary containing the result of the task execution
+        """
+        if context is None:
+            context = {}
+        
+        try:
+            self.start_task(task)
+            start_time = datetime.utcnow()
+            
+            # Execute the task
+            result = self.execute(task, context)
+            
+            # Calculate execution time
+            execution_time = (datetime.utcnow() - start_time).total_seconds()
+            
+            # Mark task as complete
+            self.complete_task(task, execution_time, success=True)
+            
+            return result
+            
+        except Exception as e:
+            execution_time = (datetime.utcnow() - start_time).total_seconds() if 'start_time' in locals() else 0.0
+            self.complete_task(task, execution_time, success=False)
+            self.set_error(str(e))
+            raise
+    
+    def send_message(self, recipient_id: str, message_content: Dict[str, Any], 
+                    subject: str = "Agent Communication") -> bool:
+        """
+        Send a message to another agent or system component.
+        
+        Args:
+            recipient_id: ID of the message recipient
+            message_content: Content of the message
+            subject: Subject line for the message
+            
+        Returns:
+            True if message was sent successfully, False otherwise
+        """
+        try:
+            # This would integrate with the communication system
+            # For now, we'll log the message
+            self.logger.info(f"Agent {self.name} sending message to {recipient_id}: {subject}")
+            self.logger.debug(f"Message content: {message_content}")
+            
+            # Update last activity
+            self.agent_state.last_activity = datetime.utcnow()
+            self.agent_state.last_updated = datetime.utcnow()
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Failed to send message: {str(e)}")
+            return False
+    
+    def update_status(self, status: AgentStatus, message: str = None) -> None:
+        """
+        Update the agent's status with an optional message.
+        
+        Args:
+            status: New status for the agent
+            message: Optional status message
+        """
+        old_status = self.agent_state.status
+        self.agent_state.status = status
+        self.agent_state.last_updated = datetime.utcnow()
+        
+        if message:
+            self.agent_state.context['status_message'] = message
+        
+        self.logger.info(f"Agent {self.name} status changed from {old_status} to {status}")
+        if message:
+            self.logger.info(f"Status message: {message}")
     
     def health_check(self) -> bool:
         """

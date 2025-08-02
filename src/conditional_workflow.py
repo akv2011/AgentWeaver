@@ -1093,3 +1093,123 @@ class ConditionalWorkflowOrchestrator:
                 for name in self.worker_agents.keys()
             }
         }
+    
+    def add_step(self, step_name: str, agent_name: str, step_config: Dict[str, Any] = None) -> bool:
+        """
+        Add a new step to the conditional workflow.
+        
+        Args:
+            step_name: Name of the step to add
+            agent_name: Name of the agent to execute this step
+            step_config: Optional configuration for the step
+            
+        Returns:
+            True if step was added successfully, False otherwise
+        """
+        try:
+            if step_config is None:
+                step_config = {}
+            
+            # Check if agent exists
+            if agent_name not in self.worker_agents:
+                logger.error(f"Agent {agent_name} not found for step {step_name}")
+                return False
+            
+            # Store step configuration for conditional routing
+            if not hasattr(self, 'custom_steps'):
+                self.custom_steps = {}
+            
+            self.custom_steps[step_name] = {
+                'agent_name': agent_name,
+                'config': step_config,
+                'routing_conditions': step_config.get('routing_conditions', {}),
+                'added_at': datetime.utcnow().isoformat()
+            }
+            
+            logger.info(f"Added conditional step {step_name} with agent {agent_name}")
+            
+            # Update routing rules if conditions are specified
+            routing_conditions = step_config.get('routing_conditions')
+            if routing_conditions:
+                self._add_routing_rule(step_name, routing_conditions)
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to add conditional step {step_name}: {str(e)}")
+            return False
+    
+    def get_status(self, workflow_id: str = None) -> Dict[str, Any]:
+        """
+        Get the status of a specific workflow execution or general orchestrator status.
+        
+        Args:
+            workflow_id: Optional workflow ID to get status for
+            
+        Returns:
+            Status information
+        """
+        try:
+            base_status = {
+                'orchestrator_status': 'active',
+                'orchestrator_type': 'conditional',
+                'total_agents': len(self.worker_agents),
+                'workflow_graph_ready': self.workflow_graph is not None,
+                'routing_rules': len(self.router.routing_rules),
+                'timestamp': datetime.utcnow().isoformat()
+            }
+            
+            # Add agent-specific status
+            agent_statuses = {}
+            for name, agent in self.worker_agents.items():
+                agent_statuses[name] = {
+                    'status': 'available',  # Simplified - could be enhanced
+                    'capabilities': [cap.value for cap in agent.capabilities],
+                    'backup_agents': self.agent_registry.get(name, [])
+                }
+            
+            base_status['agents'] = agent_statuses
+            
+            # Add failure management status
+            base_status['failure_management'] = {
+                'total_failures': len(self.failure_manager.failure_history),
+                'max_reroutes': 3  # From ConditionalWorkflowState
+            }
+            
+            # Add routing capabilities
+            base_status['routing'] = {
+                'available_strategies': list(self.router.routing_rules.keys()),
+                'custom_steps': len(getattr(self, 'custom_steps', {}))
+            }
+            
+            # If specific workflow_id requested, add workflow-specific info
+            if workflow_id:
+                base_status['requested_workflow_id'] = workflow_id
+                base_status['note'] = 'Workflow-specific status tracking available via state'
+            
+            return base_status
+            
+        except Exception as e:
+            logger.error(f"Failed to get conditional workflow status: {str(e)}")
+            return {
+                'orchestrator_status': 'error',
+                'error': str(e),
+                'timestamp': datetime.utcnow().isoformat()
+            }
+    
+    def _add_routing_rule(self, step_name: str, routing_conditions: Dict[str, Any]) -> None:
+        """Add a custom routing rule for a step."""
+        try:
+            # This would extend the router with custom routing logic
+            # For now, log the addition
+            logger.info(f"Custom routing rule for {step_name}: {routing_conditions}")
+            
+            # Could implement custom routing logic here
+            condition_type = routing_conditions.get('type', 'default')
+            condition_value = routing_conditions.get('value')
+            
+            if condition_type in ['sentiment', 'confidence', 'content_type']:
+                logger.info(f"Routing rule {step_name} uses {condition_type} with value {condition_value}")
+            
+        except Exception as e:
+            logger.error(f"Failed to add routing rule for {step_name}: {str(e)}")

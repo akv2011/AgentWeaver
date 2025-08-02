@@ -39,7 +39,6 @@ class MessageType(str, Enum):
     STATUS = "status"
     DATA = "data"
     ERROR = "error"
-    TASK_ASSIGNMENT = "task_assignment"
 
 
 class TaskPriority(str, Enum):

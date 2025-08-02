@@ -265,62 +265,6 @@ class P2PCommunicationManager:
         
         return messages
     
-    def broadcast_message(self, sender_id: str, content: Dict[str, Any], 
-                         subject: str = "Broadcast Message", 
-                         message_type: MessageType = MessageType.BROADCAST) -> bool:
-        """
-        Broadcast a message to all registered agents.
-        
-        Args:
-            sender_id: ID of the broadcasting agent
-            content: Message content
-            subject: Message subject
-            message_type: Type of message
-            
-        Returns:
-            True if broadcast was successful, False otherwise
-        """
-        try:
-            broadcast_message = AgentMessage(
-                sender_id=sender_id,
-                recipient_id="broadcast",
-                message_type=message_type,
-                subject=subject,
-                content=content
-            )
-            
-            return self._broadcast_message(broadcast_message)
-            
-        except Exception as e:
-            logger.error(f"Failed to broadcast message: {str(e)}")
-            return False
-    
-    def route_message(self, message: AgentMessage, routing_rules: Optional[Dict[str, Any]] = None) -> bool:
-        """
-        Route a message based on routing rules.
-        
-        Args:
-            message: The message to route
-            routing_rules: Optional routing rules to apply
-            
-        Returns:
-            True if message was routed successfully, False otherwise
-        """
-        try:
-            # Basic routing - can be extended with more complex rules
-            if routing_rules:
-                # Apply custom routing rules
-                target_agent = routing_rules.get('target_agent')
-                if target_agent:
-                    message.recipient_id = target_agent
-            
-            # Route the message
-            return self.send_message(message)
-            
-        except Exception as e:
-            logger.error(f"Failed to route message: {str(e)}")
-            return False
-    
     def get_communication_stats(self) -> Dict[str, Any]:
         """Get statistics about P2P communication."""
         total_messages = len(self.message_history)

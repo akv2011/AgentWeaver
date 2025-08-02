@@ -40,14 +40,14 @@ __all__ = [
     "AgentCapability", "AgentStatus", "StateManager", "RedisConfig",
     
     # Orchestration components
-    "SupervisorNode", "EnhancedSupervisorNode", "SwarmSupervisorNode",
+    "SupervisorNode", "EnhancedSupervisor", "SwarmSupervisorNode",
     "ParallelForkNode", "ParallelWorkerNode", "ParallelAggregatorNode",
     "ParallelExecutionState", "create_parallel_execution_router",
     
     # Communication components
-    "P2PCommunicationNode", "AgentIntegrationService", 
-    "HierarchicalWorkflowManager",
+    "P2PCommunicationManager", "AgentRegistry", 
+    "HierarchicalWorkflowOrchestrator",
     
     # Workflow components
-    "LinearWorkflow", "ConditionalWorkflow"
+    "LinearWorkflowOrchestrator", "ConditionalWorkflowOrchestrator"
 ]

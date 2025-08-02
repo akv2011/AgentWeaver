@@ -15,13 +15,13 @@ from pydantic import BaseModel, Field
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 
-from ..core.models import Task, TaskStatus
-from ..agents import TextAnalysisAgent, APIInteractionAgent, DataProcessingAgent
+from .models import Task, TaskStatus
+from .agents import TextAnalysisAgent, APIInteractionAgent, DataProcessingAgent
 from .p2p_communication import (
     AgentMessage, MessageType, MessagePriority, 
     CollaborationProtocol, get_p2p_manager
 )
-from ..core.redis_config import get_redis_saver
+from .redis_config import get_redis_saver
 
 logger = logging.getLogger(__name__)
 
@@ -795,79 +795,3 @@ class HierarchicalWorkflowOrchestrator:
                 for cap in team.team_capabilities
             ]
         }
-    
-    def send_message(self, sender_id: str, recipient_id: str, content: Dict[str, Any], 
-                    subject: str = "Hierarchical Communication") -> bool:
-        """
-        Send a message through the hierarchical communication system.
-        
-        Args:
-            sender_id: ID of the sender
-            recipient_id: ID of the recipient
-            content: Message content
-            subject: Message subject
-            
-        Returns:
-            True if message was sent successfully, False otherwise
-        """
-        try:
-            message = AgentMessage(
-                sender_id=sender_id,
-                recipient_id=recipient_id,
-                message_type=MessageType.COLLABORATION,
-                subject=subject,
-                content=content
-            )
-            
-            return self.p2p_manager.send_message(message)
-            
-        except Exception as e:
-            logger.error(f"Failed to send hierarchical message: {str(e)}")
-            return False
-    
-    def broadcast_message(self, sender_id: str, content: Dict[str, Any], 
-                         subject: str = "Team Broadcast") -> bool:
-        """
-        Broadcast a message to all team members.
-        
-        Args:
-            sender_id: ID of the broadcasting agent
-            content: Message content
-            subject: Message subject
-            
-        Returns:
-            True if broadcast was successful, False otherwise
-        """
-        try:
-            return self.p2p_manager.broadcast_message(sender_id, content, subject)
-            
-        except Exception as e:
-            logger.error(f"Failed to broadcast hierarchical message: {str(e)}")
-            return False
-    
-    def route_message(self, message: AgentMessage, team_id: Optional[str] = None) -> bool:
-        """
-        Route a message within the hierarchical structure.
-        
-        Args:
-            message: The message to route
-            team_id: Optional team ID for team-specific routing
-            
-        Returns:
-            True if message was routed successfully, False otherwise
-        """
-        try:
-            routing_rules = {}
-            
-            # Apply team-specific routing if specified
-            if team_id and team_id in self.teams:
-                team = self.teams[team_id]
-                # Route to team supervisor if no specific recipient
-                if message.recipient_id == "team":
-                    routing_rules['target_agent'] = team.supervisor_id
-            
-            return self.p2p_manager.route_message(message, routing_rules)
-            
-        except Exception as e:
-            logger.error(f"Failed to route hierarchical message: {str(e)}")
-            return False

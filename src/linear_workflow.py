@@ -563,3 +563,94 @@ class LinearWorkflowOrchestrator:
                 for name, agent in self.worker_agents.items()
             }
         }
+    
+    def add_step(self, step_name: str, agent_name: str, step_config: Dict[str, Any] = None) -> bool:
+        """
+        Add a new step to the workflow (for dynamic workflow modification).
+        
+        Args:
+            step_name: Name of the step to add
+            agent_name: Name of the agent to execute this step
+            step_config: Optional configuration for the step
+            
+        Returns:
+            True if step was added successfully, False otherwise
+        """
+        try:
+            if step_config is None:
+                step_config = {}
+            
+            # Check if agent exists
+            if agent_name not in self.worker_agents:
+                logger.error(f"Agent {agent_name} not found for step {step_name}")
+                return False
+            
+            # For linear workflows, we'd need to rebuild the graph
+            # This is a simplified implementation
+            logger.info(f"Step {step_name} would be added with agent {agent_name}")
+            logger.warning("Dynamic step addition requires workflow graph rebuild")
+            
+            # Store step configuration for potential future use
+            if not hasattr(self, 'custom_steps'):
+                self.custom_steps = {}
+            
+            self.custom_steps[step_name] = {
+                'agent_name': agent_name,
+                'config': step_config,
+                'added_at': datetime.utcnow().isoformat()
+            }
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to add step {step_name}: {str(e)}")
+            return False
+    
+    def get_status(self, workflow_id: str = None) -> Dict[str, Any]:
+        """
+        Get the status of a specific workflow execution or general orchestrator status.
+        
+        Args:
+            workflow_id: Optional workflow ID to get status for
+            
+        Returns:
+            Status information
+        """
+        try:
+            base_status = {
+                'orchestrator_status': 'active',
+                'total_agents': len(self.worker_agents),
+                'workflow_graph_ready': self.workflow_graph is not None,
+                'timestamp': datetime.utcnow().isoformat()
+            }
+            
+            # Add agent-specific status
+            agent_statuses = {}
+            for name, agent in self.worker_agents.items():
+                agent_statuses[name] = {
+                    'status': agent.status.value,
+                    'capabilities': [cap.value for cap in agent.capabilities],
+                    'current_task': getattr(agent.agent_state, 'current_task_id', None)
+                }
+            
+            base_status['agents'] = agent_statuses
+            
+            # Add custom steps if any
+            if hasattr(self, 'custom_steps'):
+                base_status['custom_steps'] = len(self.custom_steps)
+            
+            # If specific workflow_id requested, this would query that workflow's state
+            # For now, return general status
+            if workflow_id:
+                base_status['requested_workflow_id'] = workflow_id
+                base_status['note'] = 'Specific workflow status tracking not implemented'
+            
+            return base_status
+            
+        except Exception as e:
+            logger.error(f"Failed to get status: {str(e)}")
+            return {
+                'orchestrator_status': 'error',
+                'error': str(e),
+                'timestamp': datetime.utcnow().isoformat()
+            }

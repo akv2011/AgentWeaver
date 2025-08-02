@@ -10,7 +10,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from src.conditional_workflow import ConditionalWorkflowOrchestrator
-from src.redis_config import redis_manager, get_redis_client
+from src.core.redis_config import redis_manager, get_redis_client
 import json
 import time
 import uuid

@@ -19,7 +19,7 @@ from src.api.models import (
     AgentStatus,
     ErrorResponse
 )
-from src.supervisor import SupervisorNode
+from src.orchestration.supervisor import SupervisorNode
 
 logger = logging.getLogger(__name__)
 

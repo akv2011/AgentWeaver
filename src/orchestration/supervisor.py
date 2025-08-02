@@ -578,3 +578,189 @@ class SupervisorNode:
         # Remove assigned tasks from queue (in reverse order to maintain indices)
         for i in reversed(tasks_to_remove):
             del self.task_queue[i]
+    
+    @property
+    def supervisor_id(self) -> str:
+        """Get the supervisor's unique ID."""
+        if not hasattr(self, '_supervisor_id'):
+            self._supervisor_id = str(uuid.uuid4())
+        return self._supervisor_id
+    
+    def monitor_agents(self) -> Dict[str, Any]:
+        """
+        Monitor all registered agents and their health status.
+        
+        Returns:
+            Dictionary containing agent monitoring information
+        """
+        try:
+            monitoring_report = {
+                'timestamp': datetime.utcnow().isoformat(),
+                'supervisor_id': self.supervisor_id,
+                'total_agents': len(self.agent_registry),
+                'agents_by_status': {},
+                'task_queue_length': len(self.task_queue),
+                'agent_details': {}
+            }
+            
+            # Count agents by status
+            status_counts = {}
+            for agent in self.agent_registry.values():
+                status = agent.status.value
+                status_counts[status] = status_counts.get(status, 0) + 1
+                
+                # Add detailed agent information
+                monitoring_report['agent_details'][agent.agent_id] = {
+                    'name': agent.name,
+                    'status': status,
+                    'current_task': agent.current_task_id,
+                    'capabilities': [cap.value for cap in agent.capabilities],
+                    'last_activity': agent.last_activity.isoformat() if agent.last_activity else None,
+                    'health_check_passed': agent.health_check_passed,
+                    'tasks_completed': agent.tasks_completed,
+                    'tasks_failed': agent.tasks_failed
+                }
+            
+            monitoring_report['agents_by_status'] = status_counts
+            
+            # Check for unhealthy agents
+            unhealthy_agents = []
+            for agent in self.agent_registry.values():
+                if not agent.health_check_passed or agent.status == AgentStatus.ERROR:
+                    unhealthy_agents.append(agent.agent_id)
+            
+            monitoring_report['unhealthy_agents'] = unhealthy_agents
+            monitoring_report['health_issues'] = len(unhealthy_agents) > 0
+            
+            logger.info(f"Agent monitoring completed: {len(self.agent_registry)} agents, {len(unhealthy_agents)} health issues")
+            
+            return monitoring_report
+            
+        except Exception as e:
+            logger.error(f"Failed to monitor agents: {str(e)}")
+            return {
+                'error': str(e),
+                'timestamp': datetime.utcnow().isoformat(),
+                'supervisor_id': self.supervisor_id
+            }
+    
+    def get_supervisor_status(self) -> Dict[str, Any]:
+        """
+        Get comprehensive status of the supervisor node.
+        
+        Returns:
+            Dictionary containing supervisor status information
+        """
+        try:
+            return {
+                'supervisor_id': self.supervisor_id,
+                'status': 'active',
+                'timestamp': datetime.utcnow().isoformat(),
+                'registered_agents': len(self.agent_registry),
+                'queued_tasks': len(self.task_queue),
+                'graph_compiled': self.supervisor_graph is not None,
+                'system_state': {
+                    'workflow_id': self.system_state.workflow_id,
+                    'current_step': self.system_state.current_step,
+                    'total_steps': self.system_state.total_steps
+                },
+                'capabilities': [
+                    'agent_registration',
+                    'task_assignment', 
+                    'health_monitoring',
+                    'message_processing'
+                ]
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get supervisor status: {str(e)}")
+            return {
+                'supervisor_id': self.supervisor_id,
+                'status': 'error',
+                'error': str(e),
+                'timestamp': datetime.utcnow().isoformat()
+            }
+    
+    def handle_failure(self, agent_id: str, task_id: str = None, failure_reason: str = None) -> bool:
+        """
+        Handle agent or task failure and implement recovery strategies.
+        
+        Args:
+            agent_id: ID of the failed agent
+            task_id: Optional ID of the failed task
+            failure_reason: Optional description of the failure
+            
+        Returns:
+            True if failure was handled successfully, False otherwise
+        """
+        try:
+            logger.warning(f"Handling failure for agent {agent_id}, task {task_id}: {failure_reason}")
+            
+            # Mark agent as having an error
+            if agent_id in self.agent_registry:
+                agent = self.agent_registry[agent_id]
+                agent.status = AgentStatus.ERROR
+                agent.error_message = failure_reason or "Agent failure detected"
+                agent.health_check_passed = False
+                agent.last_updated = datetime.utcnow()
+                
+                # If the agent was working on a task, handle task reassignment
+                if task_id or agent.current_task_id:
+                    failed_task_id = task_id or agent.current_task_id
+                    self._handle_task_reassignment(failed_task_id, agent_id)
+                
+                # Clear the agent's current task
+                agent.current_task_id = None
+                
+                logger.info(f"Agent {agent_id} marked as failed and task reassignment initiated")
+                return True
+            else:
+                logger.error(f"Cannot handle failure: Agent {agent_id} not found in registry")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Failed to handle agent failure: {str(e)}")
+            return False
+    
+    def _handle_task_reassignment(self, task_id: str, failed_agent_id: str) -> bool:
+        """
+        Handle reassignment of a task when an agent fails.
+        
+        Args:
+            task_id: ID of the task to reassign
+            failed_agent_id: ID of the agent that failed
+            
+        Returns:
+            True if task was reassigned, False otherwise
+        """
+        try:
+            # Create a mock task for reassignment (in a real system, this would come from task storage)
+            reassignment_task = Task(
+                task_id=task_id,
+                title=f"Reassigned Task {task_id}",
+                description=f"Task reassigned due to agent {failed_agent_id} failure",
+                status=TaskStatus.PENDING,
+                priority=TaskPriority.HIGH  # High priority for reassigned tasks
+            )
+            
+            # Try to find another suitable agent
+            suitable_agent = self._find_suitable_agent(reassignment_task)
+            
+            if suitable_agent:
+                # Assign to the new agent
+                suitable_agent.status = AgentStatus.BUSY
+                suitable_agent.current_task_id = task_id
+                reassignment_task.assigned_agent_id = suitable_agent.agent_id
+                reassignment_task.status = TaskStatus.IN_PROGRESS
+                
+                logger.info(f"Task {task_id} reassigned from {failed_agent_id} to {suitable_agent.agent_id}")
+                return True
+            else:
+                # Add to queue for later assignment
+                self.task_queue.append(reassignment_task)
+                logger.warning(f"Task {task_id} queued for reassignment - no suitable agent available")
+                return True
+                
+        except Exception as e:
+            logger.error(f"Failed to reassign task {task_id}: {str(e)}")
+            return False
