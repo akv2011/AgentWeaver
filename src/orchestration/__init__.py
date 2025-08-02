@@ -7,7 +7,7 @@ for managing multi-agent workflows and parallel execution.
 """
 
 from .supervisor import SupervisorNode
-from .enhanced_supervisor import EnhancedSupervisorNode
+from .enhanced_supervisor import EnhancedSupervisor
 from .swarm_supervisor import SwarmSupervisorNode
 from .parallel_execution_nodes import (
     ParallelForkNode, ParallelWorkerNode, ParallelAggregatorNode,

@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 import copy
 
 from .supervisor import SupervisorNode
-from .models import (
+from ..core.models import (
     AgentState, Task, Message, WorkflowState, SystemState,
     TaskStatus, TaskPriority, MessageType, MessagePriority, 
     AgentCapability, AgentStatus

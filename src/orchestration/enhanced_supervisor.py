@@ -12,12 +12,12 @@ import logging
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 
-from .models import (
+from ..core.models import (
     AgentState, Task, Message, WorkflowState, SystemState,
     TaskStatus, TaskPriority, MessageType, MessagePriority, 
     AgentCapability, AgentStatus
 )
-from .agents import (
+from ..agents import (
     BaseWorkerAgent,
     TextAnalysisAgent,
     APIInteractionAgent,

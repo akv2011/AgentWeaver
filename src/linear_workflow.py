@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 
-from .models import Task, TaskStatus, AgentCapability
+from .core.models import Task, TaskStatus, AgentCapability
 from .agents import TextAnalysisAgent, APIInteractionAgent, DataProcessingAgent
 
 logger = logging.getLogger(__name__)

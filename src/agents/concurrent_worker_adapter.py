@@ -18,7 +18,7 @@ from .base_agent import BaseWorkerAgent
 from .text_analysis_agent import TextAnalysisAgent
 from .data_processing_agent import DataProcessingAgent
 from .api_interaction_agent import APIInteractionAgent
-from ..models import AgentCapability, Task, TaskStatus, AgentStatus
+from ..core.models import AgentCapability, Task, TaskStatus, AgentStatus
 
 
 logger = logging.getLogger(__name__)

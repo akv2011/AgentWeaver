@@ -10,7 +10,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 import logging
 
-from ..models import AgentState, AgentCapability, AgentStatus, Task, TaskStatus
+from ..core.models import AgentState, AgentCapability, AgentStatus, Task, TaskStatus
 
 
 logger = logging.getLogger(__name__)

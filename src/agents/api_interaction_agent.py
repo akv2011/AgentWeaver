@@ -13,7 +13,7 @@ import requests
 from urllib.parse import urljoin, urlparse
 
 from .base_agent import BaseWorkerAgent
-from ..models import AgentCapability, Task, TaskStatus
+from ..core.models import AgentCapability, Task, TaskStatus
 
 
 logger = logging.getLogger(__name__)

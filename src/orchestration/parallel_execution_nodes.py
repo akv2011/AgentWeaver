@@ -166,7 +166,7 @@ class ParallelWorkerNode:
         if use_concurrent_adapters:
             try:
                 # Import here to avoid circular dependencies
-                from .agents.concurrent_worker_adapter import get_global_worker_registry
+                from ..agents.concurrent_worker_adapter import get_global_worker_registry
                 self.worker_registry = get_global_worker_registry()
                 logger.info("ParallelWorkerNode initialized with concurrent adapter support")
             except ImportError as e:

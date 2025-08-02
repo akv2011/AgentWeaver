@@ -9,14 +9,14 @@ from typing import Dict, List, Any, Optional
 import logging
 from datetime import datetime
 
-from .supervisor import SupervisorNode
-from .agents import (
+from ..orchestration.supervisor import SupervisorNode
+from ..agents import (
     BaseWorkerAgent,
     TextAnalysisAgent,
     APIInteractionAgent,
     DataProcessingAgent
 )
-from .models import AgentCapability, AgentStatus, SystemState
+from ..core.models import AgentCapability, AgentStatus, SystemState
 
 logger = logging.getLogger(__name__)
 

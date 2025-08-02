@@ -15,13 +15,13 @@ from pydantic import BaseModel, Field
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 
-from .models import Task, TaskStatus
-from .agents import TextAnalysisAgent, APIInteractionAgent, DataProcessingAgent
+from ..core.models import Task, TaskStatus
+from ..agents import TextAnalysisAgent, APIInteractionAgent, DataProcessingAgent
 from .p2p_communication import (
     AgentMessage, MessageType, MessagePriority, 
     CollaborationProtocol, get_p2p_manager
 )
-from .redis_config import get_redis_saver
+from ..core.redis_config import get_redis_saver
 
 logger = logging.getLogger(__name__)
 

@@ -18,20 +18,20 @@ from .core import (
 
 # Import orchestration components
 from .orchestration import (
-    SupervisorNode, EnhancedSupervisorNode, SwarmSupervisorNode,
+    SupervisorNode, EnhancedSupervisor, SwarmSupervisorNode,
     ParallelForkNode, ParallelWorkerNode, ParallelAggregatorNode,
     ParallelExecutionState, create_parallel_execution_router
 )
 
 # Import communication components
 from .communication import (
-    P2PCommunicationNode, AgentIntegrationService, 
-    HierarchicalWorkflowManager
+    P2PCommunicationManager, AgentRegistry, 
+    HierarchicalWorkflowOrchestrator
 )
 
 # Import workflow components
-from .linear_workflow import LinearWorkflow
-from .conditional_workflow import ConditionalWorkflow
+from .linear_workflow import LinearWorkflowOrchestrator
+from .conditional_workflow import ConditionalWorkflowOrchestrator
 
 __all__ = [
     # Core components
