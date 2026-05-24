@@ -12,13 +12,22 @@ logger = logging.getLogger(__name__)
 class RedisConfig:
     
     def __init__(self):
-        # Default configuration for Redis Cloud
-        # In production, these would come from environment variables
-        self.redis_host = os.getenv('REDIS_HOST', 'localhost')
-        self.redis_port = int(os.getenv('REDIS_PORT', 6379))
-        self.redis_password = os.getenv('REDIS_PASSWORD', None)
-        self.redis_db = int(os.getenv('REDIS_DB', 0))
-        self.redis_ssl = os.getenv('REDIS_SSL', 'false').lower() == 'true'
+        self.redis_url = os.getenv('REDIS_URL', None)
+
+        if self.redis_url:
+            from urllib.parse import urlparse
+            parsed = urlparse(self.redis_url)
+            self.redis_host = parsed.hostname or 'localhost'
+            self.redis_port = parsed.port or 6379
+            self.redis_password = parsed.password
+            self.redis_db = int((parsed.path or '/0').lstrip('/') or 0)
+            self.redis_ssl = parsed.scheme == 'rediss'
+        else:
+            self.redis_host = os.getenv('REDIS_HOST', 'localhost')
+            self.redis_port = int(os.getenv('REDIS_PORT', 6379))
+            self.redis_password = os.getenv('REDIS_PASSWORD', None)
+            self.redis_db = int(os.getenv('REDIS_DB', 0))
+            self.redis_ssl = os.getenv('REDIS_SSL', 'false').lower() == 'true'
         
         # Connection pool settings
         self.max_connections = int(os.getenv('REDIS_MAX_CONNECTIONS', 10))

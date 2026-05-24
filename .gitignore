@@ -11,6 +11,17 @@ node_modules/
 
 # My secrets
 .env
+.env.local
+.env.*.local
+
+# Python build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
 
 # Editor stuff I don't need in git
 .idea
