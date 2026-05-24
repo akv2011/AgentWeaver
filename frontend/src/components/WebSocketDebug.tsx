@@ -22,7 +22,7 @@ const WebSocketDebug: React.FC<WebSocketDebugProps> = ({ className = '' }) => {
       return;
     }
 
-    const url = 'ws://localhost:8000/ws/updates';
+    const url = import.meta.env.VITE_BACKEND_WS_URL || 'ws://localhost:8000/ws/updates';
     addLog(`Connecting to: ${url}`);
     setStatus('Connecting...');
 

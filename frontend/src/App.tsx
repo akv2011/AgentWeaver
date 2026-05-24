@@ -1,7 +1,6 @@
 import './App.css'
 import AgentList from './components/AgentList'
 import WorkflowVisualizer from './components/WorkflowVisualizer'
-import WebSocketDebug from './components/WebSocketDebug'
 import type { Agent } from './components/AgentList'
 import type { Workflow } from './components/WorkflowVisualizer'
 import { useWebSocket, useAgentUpdates, useWorkflowUpdates } from './hooks/useWebSocket'

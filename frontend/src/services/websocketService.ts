@@ -287,7 +287,8 @@ export class WebSocketService {
   }
 }
 
-// Default WebSocket service instance
+const WS_URL = import.meta.env.VITE_BACKEND_WS_URL || 'ws://localhost:8000/ws/updates';
+
 export const defaultWebSocketService = new WebSocketService({
-  url: 'ws://localhost:8000/ws/updates'
+  url: WS_URL
 });
