@@ -77,7 +77,7 @@ export default function Footer() {
               color: 'var(--col-muted)',
             }}
           >
-            &copy; 2026 Arunkumar V. All rights reserved.
+            &copy; 2026 Arunkumar V
           </p>
 
           <p
@@ -92,7 +92,6 @@ export default function Footer() {
             }}
           >
             Backend on Render (Singapore). First load may take ~30s if cold.
-            Submitted as part of Apple Developer Academy @ BINUS application.
           </p>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useRef, useCallback } from 'react';
+import { sendChatMessage } from '../lib/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,15 @@ export interface TimelineEvent {
   detail: string | null;
 }
 
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  workflowId?: string;
+  latestOutputs?: Record<string, unknown>;
+  executionTime?: number;
+}
+
 export interface WorkflowState {
   connection: ConnectionState;
   agents: Record<string, AgentState>;
@@ -29,6 +39,10 @@ export interface WorkflowState {
   isRunning: boolean;
   completionTime: number | null;
   workflowStartedAt: number | null;
+  messages: ChatMessage[];
+  latestOutputs: Record<string, unknown>;
+  synthesisMarkdown: string | null;
+  activeWorkflowId: string | null;
 }
 
 // ─── Initial State ─────────────────────────────────────────────────────────
@@ -57,17 +71,27 @@ const initialState: WorkflowState = {
   isRunning: false,
   completionTime: null,
   workflowStartedAt: null,
+  messages: [],
+  latestOutputs: {},
+  synthesisMarkdown: null,
+  activeWorkflowId: null,
 };
 
 // ─── Reducer ───────────────────────────────────────────────────────────────
 
 type Action =
   | { type: 'SET_CONNECTION'; state: ConnectionState }
-  | { type: 'WS_MESSAGE'; raw: string };
+  | { type: 'WS_MESSAGE'; raw: string }
+  | { type: 'SEND_USER_MESSAGE'; content: string };
 
 let eventCounter = 0;
 function makeId() {
   return `ev-${++eventCounter}`;
+}
+
+let msgCounter = 0;
+function makeMsgId() {
+  return `msg-${++msgCounter}`;
 }
 
 function fmt(ts: string): string {
@@ -82,6 +106,20 @@ function fmt(ts: string): string {
 function reducer(state: WorkflowState, action: Action): WorkflowState {
   if (action.type === 'SET_CONNECTION') {
     return { ...state, connection: action.state };
+  }
+
+  if (action.type === 'SEND_USER_MESSAGE') {
+    const userMsg: ChatMessage = {
+      id: makeMsgId(),
+      role: 'user',
+      content: action.content,
+      workflowId: 'pending',
+    };
+    return {
+      ...state,
+      messages: [...state.messages, userMsg],
+      activeWorkflowId: 'pending',
+    };
   }
 
   if (action.type === 'WS_MESSAGE') {
@@ -105,13 +143,14 @@ function reducer(state: WorkflowState, action: Action): WorkflowState {
       const ts = (msg.timestamp as string) ?? new Date().toISOString();
 
       if (event === 'workflow_started') {
+        const workflowId = (msg.workflow_id as string) ?? makeId();
         const ev: TimelineEvent = {
           id: makeId(),
           timestamp: fmt(ts),
           agentId: null,
           type: 'workflow_started',
           label: 'Workflow started',
-          detail: `ID: ${(msg.workflow_id as string ?? '').slice(-8)}`,
+          detail: `ID: ${workflowId.slice(-8)}`,
         };
         return {
           ...state,
@@ -120,24 +159,35 @@ function reducer(state: WorkflowState, action: Action): WorkflowState {
           workflowStartedAt: Date.now(),
           progress: 0,
           timeline: [ev],
+          latestOutputs: {},
+          synthesisMarkdown: null,
+          activeWorkflowId: workflowId,
         };
       }
 
       if (event === 'step_completed') {
         const stepData = (details.step_data ?? {}) as Record<string, unknown>;
         const stepName = (details.step as string) ?? (msg.current_step as string) ?? 'step';
-        const pairs = Object.entries(stepData)
-          .map(([k, v]) => `${k}: ${typeof v === 'number' ? (v as number).toFixed(2) : String(v)}`)
-          .join(' · ');
         const ev: TimelineEvent = {
           id: makeId(),
           timestamp: fmt(ts),
           agentId: null,
           type: 'step_completed',
           label: `Step complete — ${stepName.replace(/_/g, ' ')}`,
-          detail: pairs || null,
+          detail: null,
         };
-        return { ...state, progress, timeline: [...state.timeline, ev] };
+        const newOutputs = { ...state.latestOutputs, [stepName]: stepData };
+        const newSynthesis =
+          stepName === 'synthesis'
+            ? ((stepData as { reply_markdown?: string }).reply_markdown ?? state.synthesisMarkdown)
+            : state.synthesisMarkdown;
+        return {
+          ...state,
+          progress,
+          timeline: [...state.timeline, ev],
+          latestOutputs: newOutputs,
+          synthesisMarkdown: newSynthesis,
+        };
       }
 
       if (event === 'workflow_completed') {
@@ -152,12 +202,22 @@ function reducer(state: WorkflowState, action: Action): WorkflowState {
           label: 'Workflow complete',
           detail: timeVal !== null ? `${timeVal.toFixed(1)}s total` : null,
         };
+        const replyContent = state.synthesisMarkdown ?? '_No synthesis received._';
+        const assistantMsg: ChatMessage = {
+          id: makeMsgId(),
+          role: 'assistant',
+          content: replyContent,
+          workflowId: state.activeWorkflowId ?? undefined,
+          latestOutputs: { ...state.latestOutputs },
+          executionTime: timeVal ?? undefined,
+        };
         return {
           ...state,
           progress: 1,
           isRunning: false,
           completionTime: timeVal,
           timeline: [...state.timeline, ev],
+          messages: [...state.messages, assistantMsg],
         };
       }
 
@@ -180,7 +240,6 @@ function reducer(state: WorkflowState, action: Action): WorkflowState {
         },
       };
 
-      // Only add timeline row for busy state (going idle is silent)
       if (status === 'busy' && currentTask) {
         const ev: TimelineEvent = {
           id: makeId(),
@@ -233,13 +292,12 @@ export function useWorkflowStream() {
     };
 
     ws.onerror = () => {
-      // Intentionally no-op — onclose will handle reconnection
+      // Intentionally no-op — onclose handles reconnection
     };
 
     ws.onclose = () => {
       if (!mountedRef.current) return;
       dispatch({ type: 'SET_CONNECTION', state: 'disconnected' });
-      // Reconnect after 4 seconds
       reconnectTimer.current = setTimeout(() => {
         if (mountedRef.current) connect();
       }, 4000);
@@ -256,5 +314,12 @@ export function useWorkflowStream() {
     };
   }, [connect]);
 
-  return state;
+  const sendMessage = useCallback((content: string) => {
+    dispatch({ type: 'SEND_USER_MESSAGE', content });
+    sendChatMessage(content).catch(() => {
+      // WS stream is source of truth; HTTP failure is non-blocking
+    });
+  }, []);
+
+  return { ...state, sendMessage };
 }

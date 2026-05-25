@@ -151,103 +151,46 @@ async def api_info():
         "status": "ready"
     }
 
+from pydantic import BaseModel
+import time
+
+from src.agents.stock_analyst import run_pipeline
+
+
+class ChatRequest(BaseModel):
+    message: str = "Give me a snapshot of AAPL right now."
+
+
+def _make_workflow_id(prefix: str = "chat") -> str:
+    return f"{prefix}_{int(time.time() * 1000)}"
+
+
+@app.post("/api/chat", tags=["Chat"])
+async def chat(req: ChatRequest):
+    """Start a multi-agent stock analysis workflow for the user's question.
+
+    Returns immediately with a workflow_id. Real progress streams over the
+    /ws/updates WebSocket and the final assistant reply arrives as the
+    `synthesis` workflow step event.
+    """
+    query = (req.message or "").strip() or "Give me a snapshot of AAPL right now."
+    workflow_id = _make_workflow_id("chat")
+    asyncio.create_task(run_pipeline(workflow_id, query))
+    return {"workflow_id": workflow_id, "status": "started", "query": query}
+
+
 @app.post("/api/test/demo-workflow", tags=["Testing"])
 async def trigger_demo_workflow():
-    """Trigger a demo workflow that sends real-time updates to the dashboard"""
-    try:
-        from src.services.websocket_integration import integration_service
-        import asyncio
-        import time
-        
-        # Create demo workflow
-        workflow_id = f"demo_workflow_{int(time.time())}"
-        
-        # Start workflow
-        await integration_service.notify_workflow_started(workflow_id, {
-            "estimated_steps": 3,
-            "input_data": {
-                "text": "Demo customer review analysis",
-                "metadata": {"source": "dashboard_demo"}
-            }
-        })
-        
-        # Update agents and workflow steps with delays
-        asyncio.create_task(_run_demo_workflow_async(workflow_id))
-        
-        return {
-            "message": "Demo workflow started",
-            "workflow_id": workflow_id,
-            "check_dashboard": "Watch your dashboard for real-time updates!"
-        }
-        
-    except Exception as e:
-        logger.error(f"Failed to start demo workflow: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-async def _run_demo_workflow_async(workflow_id: str):
-    """Run the demo workflow asynchronously with realistic timing"""
-    try:
-        from src.services.websocket_integration import integration_service
-        import time
-        
-        # Step 1: Text Analysis
-        await integration_service.notify_agent_status_change(
-            "text_analyzer", "idle", "busy", 
-            {"current_task": "Analyzing customer sentiment"}
-        )
-        await asyncio.sleep(2)
-        
-        await integration_service.notify_workflow_step(
-            workflow_id, "text_analysis", {
-                "sentiment": "positive",
-                "confidence": 0.87
-            }
-        )
-        
-        # Step 2: Data Processing
-        await integration_service.notify_agent_status_change(
-            "data_processor", "idle", "busy",
-            {"current_task": "Processing customer data"}
-        )
-        await asyncio.sleep(2)
-        
-        await integration_service.notify_workflow_step(
-            workflow_id, "data_processing", {
-                "records_processed": 1247,
-                "data_quality": "high"
-            }
-        )
-        
-        # Step 3: API Integration  
-        await integration_service.notify_agent_status_change(
-            "api_client", "idle", "busy",
-            {"current_task": "Fetching external data"}
-        )
-        await asyncio.sleep(2)
-        
-        await integration_service.notify_workflow_step(
-            workflow_id, "api_integration", {
-                "external_data": "retrieved",
-                "api_calls": 3
-            }
-        )
-        
-        # Complete workflow
-        await integration_service.notify_workflow_completed(workflow_id, {
-            "status": "completed",
-            "total_sentiment_score": 0.87,
-            "records_processed": 1247,
-            "summary": "Customer review analysis completed successfully"
-        })
-        
-        # Reset agents to idle
-        for agent_id in ["text_analyzer", "data_processor", "api_client"]:
-            await integration_service.notify_agent_status_change(
-                agent_id, "busy", "idle", {"current_task": None}
-            )
-            
-    except Exception as e:
-        logger.error(f"Error in demo workflow {workflow_id}: {e}")
+    """Backward-compat alias: triggers the chat pipeline with a default AAPL question."""
+    workflow_id = _make_workflow_id("demo")
+    asyncio.create_task(
+        run_pipeline(workflow_id, "Give me a snapshot of AAPL right now.")
+    )
+    return {
+        "message": "Demo workflow started",
+        "workflow_id": workflow_id,
+        "check_dashboard": "Watch your dashboard for real-time updates!",
+    }
 
 
 if __name__ == "__main__":

@@ -1,21 +1,20 @@
-const BASE_URL: string =
-  import.meta.env.VITE_BACKEND_URL ?? 'https://agentweaver-ve9r.onrender.com';
+const BASE_HTTP_URL: string =
+  import.meta.env.VITE_BACKEND_HTTP_URL ?? 'https://agentweaver-ve9r.onrender.com';
 
-export interface DemoWorkflowResponse {
-  message: string;
+export interface ChatMessageResponse {
   workflow_id: string;
-  check_dashboard: string;
 }
 
-export async function triggerDemoWorkflow(): Promise<DemoWorkflowResponse> {
-  const res = await fetch(`${BASE_URL}/api/test/demo-workflow`, {
+export async function sendChatMessage(message: string): Promise<ChatMessageResponse> {
+  const res = await fetch(`${BASE_HTTP_URL}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message }),
   });
 
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}`);
   }
 
-  return res.json() as Promise<DemoWorkflowResponse>;
+  return res.json() as Promise<ChatMessageResponse>;
 }
