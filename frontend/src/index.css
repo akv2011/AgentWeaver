@@ -1,30 +1,38 @@
 /* ─────────────────────────────────────────────────────────────────────────────
    AGENTWEAVER — DESIGN TOKENS
-   Aesthetic: warm near-black · amber/warm-gold accent · Fraunces + Inter Tight
-   Accent: #c9843a (amber-gold) — reads as "agents working", distinct from jade
+   Aesthetic: cool charcoal · electric cyan + financial up/down · JetBrains Mono + Inter
+   Deliberately distinct from the apple-apps-landing showcase (warm + Fraunces serif).
+   This product reads as a fintech terminal: data-dense, technical, professional.
 ───────────────────────────────────────────────────────────────────────────── */
 :root {
-  /* Palette */
-  --col-ground:   #0d0c0a;   /* near-black, slightly warm */
-  --col-surface:  #161411;   /* card background */
-  --col-surface2: #1c1a16;   /* card background alternate */
-  --col-border:   #2a2720;   /* subtle divider */
-  --col-border2:  #363229;   /* slightly more visible border */
+  /* Palette — cool charcoal, no warm tones */
+  --col-ground:   #0a0e13;   /* deep cool charcoal */
+  --col-surface:  #11161d;   /* card background */
+  --col-surface2: #161c25;   /* card background alternate */
+  --col-border:   #1f2733;   /* subtle divider */
+  --col-border2:  #2a3340;   /* slightly more visible border */
 
-  --col-text:     #e8e3d8;   /* warm off-white body text */
-  --col-muted:    #7a7268;   /* secondary / meta text */
-  --col-faint:    #3d3930;   /* very faint decorative text */
+  --col-text:     #dde6ef;   /* cool off-white body text */
+  --col-muted:    #6c7989;   /* secondary / meta text */
+  --col-faint:    #2f3845;   /* very faint decorative text */
 
-  /* Amber/gold accent — "agents in motion" energy */
-  --col-amber:        #c9843a;
-  --col-amber-dim:    #a06828;
-  --col-amber-glow:   #e09a50;
-  --col-amber-bg:     rgba(201, 132, 58, 0.08);
-  --col-amber-border: rgba(201, 132, 58, 0.28);
+  /* Electric cyan accent (legacy --col-amber-* names kept as aliases so
+     all existing components continue to work with the new palette) */
+  --col-amber:        #22d3ee;
+  --col-amber-dim:    #0e7490;
+  --col-amber-glow:   #67e8f9;
+  --col-amber-bg:     rgba(34, 211, 238, 0.08);
+  --col-amber-border: rgba(34, 211, 238, 0.28);
 
-  /* Typography */
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body:    'Inter Tight', 'Helvetica Neue', sans-serif;
+  /* Financial semantic colors (new, for stock UI) */
+  --col-up:           #4ade80;   /* bullish / positive change */
+  --col-up-bg:        rgba(74, 222, 128, 0.10);
+  --col-down:         #f87171;   /* bearish / negative change */
+  --col-down-bg:      rgba(248, 113, 113, 0.10);
+
+  /* Typography — mono for data/display, sans for body */
+  --font-display: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-body:    'Inter', 'Helvetica Neue', system-ui, sans-serif;
 
   /* Spacing rhythm, 8px base */
   --space-1: 0.5rem;
@@ -76,15 +84,37 @@ body {
 /* ─────────────────────────────────────────────────────────────────────────────
    GRAIN OVERLAY — faint noise texture
 ───────────────────────────────────────────────────────────────────────────── */
+/* Subtle grid pattern — fintech terminal feel, not noise */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 0;
   pointer-events: none;
-  opacity: 0.022;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-size: 200px 200px;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(rgba(34, 211, 238, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.022) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Faint scanline at top — Bloomberg-terminal-style strip */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  z-index: 1001;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--col-amber-border) 20%,
+    var(--col-amber-glow) 50%,
+    var(--col-amber-border) 80%,
+    transparent 100%);
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -127,8 +157,8 @@ body::before {
 }
 
 @keyframes agent-glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 1px var(--col-amber-border), 0 0 20px rgba(201, 132, 58, 0.12); }
-  50%       { box-shadow: 0 0 0 1px var(--col-amber-border), 0 0 32px rgba(201, 132, 58, 0.24); }
+  0%, 100% { box-shadow: 0 0 0 1px var(--col-amber-border), 0 0 20px rgba(34, 211, 238, 0.12); }
+  50%       { box-shadow: 0 0 0 1px var(--col-amber-border), 0 0 32px rgba(34, 211, 238, 0.24); }
 }
 
 @keyframes float-down {
@@ -200,17 +230,29 @@ body::before {
 ───────────────────────────────────────────────────────────────────────────── */
 .hero-headline {
   font-family: var(--font-display);
-  font-weight: 800;
-  font-optical-sizing: auto;
-  font-size: clamp(3rem, 8vw, 7.5rem);
-  line-height: 0.95;
-  letter-spacing: -0.03em;
+  font-weight: 600;
+  font-size: clamp(2.5rem, 7vw, 6rem);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
   color: var(--col-text);
 }
 
 .hero-headline em {
-  font-style: italic;
+  font-style: normal;
   color: var(--col-amber-glow);
+  position: relative;
+}
+
+.hero-headline em::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.06em;
+  height: 0.16em;
+  background: var(--col-amber-bg);
+  border-bottom: 2px solid var(--col-amber);
+  z-index: -1;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
