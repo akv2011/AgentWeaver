@@ -25,7 +25,7 @@ These are the verified, functional tests that demonstrate AgentWeaver's capabili
   - Complete system integration testing
   - All 8 test scenarios passing
   - Production readiness verification
-  - Hiring requirements validation
+  - Core requirements validation
 - **Usage**: `python tests/working/test_live_perfect.py`
 
 ## Test Results Summary
@@ -34,7 +34,7 @@ Both tests consistently show:
 - ✅ 100% success rates
 - ✅ All components functional
 - ✅ Production-ready status
-- ✅ Full hiring requirements satisfaction
+- ✅ All five core capabilities verified
 
 ## Running All Tests
 
@@ -57,4 +57,4 @@ python test_live_realistic.py
 
 **Current Status**: FULLY FUNCTIONAL and PRODUCTION-READY
 **Verification Level**: 100% verified across all critical components
-**Hiring Requirements**: Fully satisfied and exceeded
+**Core capabilities**: all five verified

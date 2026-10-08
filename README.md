@@ -94,4 +94,4 @@ cd frontend && npm run dev
 python examples/demos/dashboard_demo.py
 ```
 
-Watch http://localhost:3000 and see your agents spring to life! 🚀
+Watch http://localhost:3000 and see your agents spring to life!
