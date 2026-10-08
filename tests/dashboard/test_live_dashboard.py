@@ -19,14 +19,14 @@ from src.services.websocket_integration import integration_service
 
 def test_websocket_updates():
     """Send test updates through the WebSocket system."""
-    print("🚀 Testing Dashboard with Live WebSocket Updates")
+    print("Testing Dashboard with Live WebSocket Updates")
     print("="*60)
-    print("📊 Open your dashboard at: http://localhost:5174/")
-    print("👀 Watch for real-time updates!")
+    print("Open your dashboard at: http://localhost:5174/")
+    print("Watch for real-time updates!")
     print("="*60)
     
     # Test 1: Agent status updates
-    print("\n1️⃣ Sending agent status updates...")
+    print("\n1⃣ Sending agent status updates...")
     
     agent_updates = [
         {
@@ -68,7 +68,7 @@ def test_websocket_updates():
     ]
     
     for update in agent_updates:
-        print(f"📤 Sending agent update: {update['agent_id']} -> {update['status']}")
+        print(f"Sending agent update: {update['agent_id']} -> {update['status']}")
         integration_service.broadcast_agent_update(
             agent_id=update['agent_id'],
             event=update['event'], 
@@ -79,7 +79,7 @@ def test_websocket_updates():
         time.sleep(2)
     
     # Test 2: Workflow updates
-    print("\n2️⃣ Sending workflow updates...")
+    print("\n2⃣ Sending workflow updates...")
     
     workflow_updates = [
         {
@@ -130,7 +130,7 @@ def test_websocket_updates():
     ]
     
     for update in workflow_updates:
-        print(f"📤 Sending workflow update: {update['current_step']} ({update['progress']}%)")
+        print(f"Sending workflow update: {update['current_step']} ({update['progress']}%)")
         integration_service.broadcast_workflow_update(
             workflow_id=update['workflow_id'],
             event=update['event'],
@@ -142,7 +142,7 @@ def test_websocket_updates():
         time.sleep(3)
     
     # Test 3: System notifications
-    print("\n3️⃣ Sending system notifications...")
+    print("\n3⃣ Sending system notifications...")
     
     notifications = [
         {
@@ -177,7 +177,7 @@ def test_websocket_updates():
     ]
     
     for notification in notifications:
-        print(f"📤 Sending notification: {notification['message']}")
+        print(f"Sending notification: {notification['message']}")
         integration_service.broadcast_system_notification(
             event_type=notification['event_type'],
             message=notification['message'],
@@ -187,12 +187,12 @@ def test_websocket_updates():
         time.sleep(2)
     
     print("\n" + "="*60)
-    print("✅ Dashboard test complete!")
-    print("🎯 Your dashboard should have shown:")
+    print("OK Dashboard test complete!")
+    print("Your dashboard should have shown:")
     print("   • Agent status changes (busy, running, completed)")
     print("   • Workflow progress (0% → 100%)")
     print("   • System notifications") 
-    print("📊 Dashboard URL: http://localhost:5174/")
+    print("Dashboard URL: http://localhost:5174/")
     print("="*60)
 
 def main():
@@ -200,9 +200,9 @@ def main():
     try:
         test_websocket_updates()
     except KeyboardInterrupt:
-        print("\n⏹️  Test interrupted by user")
+        print("\n Test interrupted by user")
     except Exception as e:
-        print(f"❌ Test failed: {e}")
+        print(f"ERROR Test failed: {e}")
         import traceback
         traceback.print_exc()
 

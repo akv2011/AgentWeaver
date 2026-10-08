@@ -12,12 +12,12 @@ import time
 async def test_websocket_status():
     uri = "ws://localhost:8000/ws/updates"
     
-    print("🔍 Testing WebSocket status flow...")
+    print("Testing WebSocket status flow...")
     print(f"Connecting to: {uri}")
     
     try:
         async with websockets.connect(uri) as websocket:
-            print("✅ WebSocket connection established")
+            print("OK WebSocket connection established")
             print(f"   Connection state: {websocket.state}")
             print(f"   Local address: {websocket.local_address}")
             print(f"   Remote address: {websocket.remote_address}")
@@ -30,10 +30,10 @@ async def test_websocket_status():
             }
             
             await websocket.send(json.dumps(test_message))
-            print(f"📤 Sent test message: {test_message}")
+            print(f"Sent test message: {test_message}")
             
             # Listen for messages for a few seconds
-            print("\n📥 Listening for messages...")
+            print("\nListening for messages...")
             start_time = time.time()
             message_count = 0
             
@@ -49,16 +49,16 @@ async def test_websocket_status():
                         continue
                         
             except websockets.exceptions.ConnectionClosed:
-                print("❌ WebSocket connection closed by server")
+                print("ERROR WebSocket connection closed by server")
                 
-            print(f"\n📊 Summary:")
+            print(f"\nSummary:")
             print(f"   Total messages received: {message_count}")
             print(f"   Connection duration: {time.time() - start_time:.1f}s")
             
     except ConnectionRefusedError:
-        print("❌ Connection refused - is the server running on port 8000?")
+        print("ERROR Connection refused - is the server running on port 8000?")
     except Exception as e:
-        print(f"❌ Connection error: {e}")
+        print(f"ERROR Connection error: {e}")
 
 if __name__ == "__main__":
     asyncio.run(test_websocket_status())

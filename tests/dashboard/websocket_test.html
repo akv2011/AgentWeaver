@@ -62,31 +62,31 @@
                 ws = new WebSocket(url);
 
                 ws.onopen = function(event) {
-                    log('✅ WebSocket connection opened');
+                    log('OK WebSocket connection opened');
                     updateStatus('connected', 'Connected');
                 };
 
                 ws.onclose = function(event) {
-                    log(`❌ WebSocket connection closed: Code ${event.code}, Reason: ${event.reason}`);
+                    log(`ERROR WebSocket connection closed: Code ${event.code}, Reason: ${event.reason}`);
                     updateStatus('disconnected', 'Disconnected');
                 };
 
                 ws.onerror = function(error) {
-                    log(`❌ WebSocket error: ${error}`);
+                    log(`ERROR WebSocket error: ${error}`);
                     updateStatus('error', 'Error');
                 };
 
                 ws.onmessage = function(event) {
                     try {
                         const data = JSON.parse(event.data);
-                        log(`📨 Message received: ${JSON.stringify(data, null, 2)}`);
+                        log(`Message received: ${JSON.stringify(data, null, 2)}`);
                     } catch (e) {
-                        log(`📨 Raw message: ${event.data}`);
+                        log(`Raw message: ${event.data}`);
                     }
                 };
 
             } catch (error) {
-                log(`❌ Failed to create WebSocket: ${error}`);
+                log(`ERROR Failed to create WebSocket: ${error}`);
                 updateStatus('error', 'Connection Error');
             }
         }
@@ -106,7 +106,7 @@
         disconnectBtn.onclick = disconnect;
 
         // Auto-connect on page load
-        log('🚀 WebSocket Connection Test Started');
+        log('WebSocket Connection Test Started');
         log('Backend should be running on http://localhost:8000');
         connect();
     </script>

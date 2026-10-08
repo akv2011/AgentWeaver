@@ -12,19 +12,19 @@ from datetime import datetime
 sys.path.append('.')
 
 def run_simple_agent_demo():
-    print("🚀 AgentWeaver Real Agents Demo")
+    print("AgentWeaver Real Agents Demo")
     print("=" * 50)
     
     try:
         from src.linear_workflow import LinearWorkflowOrchestrator
         
         # Initialize the orchestrator
-        print("📋 Initializing workflow orchestrator...")
+        print("Initializing workflow orchestrator...")
         orchestrator = LinearWorkflowOrchestrator()
         
         # Check orchestrator status
         status = orchestrator.get_workflow_status()
-        print(f"✅ Orchestrator ready: {status['available_agents']} agents available")
+        print(f"OK Orchestrator ready: {status['available_agents']} agents available")
         print(f"   Agents: {list(status['agent_status'].keys())}")
         print()
         
@@ -40,14 +40,14 @@ def run_simple_agent_demo():
             }
         }
         
-        print("📊 Demo Input Summary:")
+        print("Demo Input Summary:")
         print(f"   • Text length: {len(demo_input['text'])} characters")
         print(f"   • Satisfaction scores: {len(demo_input['numbers'])} data points")
         print(f"   • Average score: {sum(demo_input['numbers'])/len(demo_input['numbers']):.1f}%")
         print()
         
         # Execute the workflow
-        print("🔄 Executing linear workflow...")
+        print("Executing linear workflow...")
         print("   Step 1: Text Analysis → Step 2: Data Enrichment → Step 3: Statistical Processing")
         print()
         
@@ -57,16 +57,16 @@ def run_simple_agent_demo():
         
         execution_time = (end_time - start_time).total_seconds()
         
-        print(f"⏱️  Workflow completed in {execution_time:.2f} seconds")
+        print(f" Workflow completed in {execution_time:.2f} seconds")
         print()
         
         # Display results
         if result.get("status") == "completed":
-            print("✅ Workflow executed successfully!")
+            print("OK Workflow executed successfully!")
             
             final_result = result.get("final_result", {})
             if final_result:
-                print("📋 Final Results:")
+                print("Final Results:")
                 
                 # Show what each step produced
                 if "step1_data" in final_result:
@@ -91,22 +91,22 @@ def run_simple_agent_demo():
                     print(f"   • Final status: {execution_metrics.get('workflow_status', 'unknown')}")
             
             print()
-            print("🎯 This demonstrates:")
+            print("This demonstrates:")
             print("   • Real agent coordination (not mock data!)")
             print("   • Multi-step workflow execution")
             print("   • Agent state management")
             print("   • Data flow between agents")
             
         else:
-            print("❌ Workflow failed!")
+            print("ERROR Workflow failed!")
             print(f"   Error: {result.get('error_message', 'Unknown error')}")
             print(f"   Failed at step: {result.get('error_step', 'Unknown step')}")
         
     except ImportError as e:
-        print(f"❌ Could not import workflow orchestrator: {e}")
+        print(f"ERROR Could not import workflow orchestrator: {e}")
         print("   Make sure you're in the AgentWeaver directory")
     except Exception as e:
-        print(f"❌ Demo failed: {e}")
+        print(f"ERROR Demo failed: {e}")
 
 if __name__ == "__main__":
     run_simple_agent_demo()

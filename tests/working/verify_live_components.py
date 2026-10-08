@@ -7,13 +7,13 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 
 def verify_agentweaver_components():
     
-    print("🔍 AGENTWEAVER DEEP COMPONENT VERIFICATION")
+    print("AGENTWEAVER DEEP COMPONENT VERIFICATION")
     print("=" * 50)
     
     verification_results = {}
     
     # 1. Verify Core Models Are Actually Functional
-    print("\n🔧 VERIFICATION 1: Core Models Functionality")
+    print("\nVERIFICATION 1: Core Models Functionality")
     try:
         from src.core import Task, AgentState, Message, WorkflowState
         from src.core import TaskStatus, AgentCapability, MessageType
@@ -31,8 +31,8 @@ def verify_agentweaver_components():
         assert hasattr(task, 'description'), "Task missing description"
         assert task.task_id == "verify_001", "Task ID not set correctly"
         
-        print(f"   ✅ Task object fully functional: {task.task_id}")
-        print(f"   ✅ Task attributes working: title='{task.title}'")
+        print(f"   OK Task object fully functional: {task.task_id}")
+        print(f"   OK Task attributes working: title='{task.title}'")
         
         # Test Message creation
         message = Message(
@@ -43,16 +43,16 @@ def verify_agentweaver_components():
             message_type=MessageType.TASK_ASSIGNMENT
         )
         
-        print(f"   ✅ Message object functional: {message.message_id}")
+        print(f"   OK Message object functional: {message.message_id}")
         
         verification_results['core_models'] = True
         
     except Exception as e:
-        print(f"   ❌ Core models verification failed: {e}")
+        print(f"   ERROR Core models verification failed: {e}")
         verification_results['core_models'] = False
     
     # 2. Verify Supervisor Nodes Have Required Methods
-    print("\n🔧 VERIFICATION 2: Supervisor Node Methods")
+    print("\nVERIFICATION 2: Supervisor Node Methods")
     try:
         from src.orchestration import SupervisorNode, EnhancedSupervisor
         
@@ -64,24 +64,24 @@ def verify_agentweaver_components():
         
         for method in required_methods:
             if hasattr(supervisor, method):
-                print(f"   ✅ SupervisorNode has {method} method")
+                print(f"   OK SupervisorNode has {method} method")
             else:
-                print(f"   ⚠️ SupervisorNode missing {method} method")
+                print(f"   WARNING SupervisorNode missing {method} method")
         
         # Test enhanced supervisor specific features
         if hasattr(enhanced, 'failure_recovery'):
-            print("   ✅ EnhancedSupervisor has failure_recovery")
+            print("   OK EnhancedSupervisor has failure_recovery")
         
-        print(f"   ✅ Supervisor instantiated with ID: {supervisor.supervisor_id[:8]}...")
+        print(f"   OK Supervisor instantiated with ID: {supervisor.supervisor_id[:8]}...")
         
         verification_results['supervisor_methods'] = True
         
     except Exception as e:
-        print(f"   ❌ Supervisor verification failed: {e}")
+        print(f"   ERROR Supervisor verification failed: {e}")
         verification_results['supervisor_methods'] = False
     
     # 3. Verify Agents Have Required Capabilities
-    print("\n🔧 VERIFICATION 3: Agent Capabilities")
+    print("\nVERIFICATION 3: Agent Capabilities")
     try:
         from src.agents import TextAnalysisAgent, DataProcessingAgent, APIInteractionAgent
         
@@ -94,28 +94,28 @@ def verify_agentweaver_components():
         
         for agent in [text_agent, data_agent, api_agent]:
             agent_type = agent.__class__.__name__
-            print(f"   🔍 Checking {agent_type}:")
+            print(f"   Checking {agent_type}:")
             
             for method in agent_methods:
                 if hasattr(agent, method):
-                    print(f"     ✅ Has {method} method")
+                    print(f"     OK Has {method} method")
                 else:
-                    print(f"     ⚠️ Missing {method} method")
+                    print(f"     WARNING Missing {method} method")
             
             # Check capabilities
             if hasattr(agent, 'capabilities'):
-                print(f"     ✅ Capabilities: {agent.capabilities}")
+                print(f"     OK Capabilities: {agent.capabilities}")
             
-            print(f"     ✅ Agent ID: {agent.agent_id[:8]}...")
+            print(f"     OK Agent ID: {agent.agent_id[:8]}...")
         
         verification_results['agent_capabilities'] = True
         
     except Exception as e:
-        print(f"   ❌ Agent capabilities verification failed: {e}")
+        print(f"   ERROR Agent capabilities verification failed: {e}")
         verification_results['agent_capabilities'] = False
     
     # 4. Verify Communication Architecture
-    print("\n🔧 VERIFICATION 4: Communication Architecture")
+    print("\nVERIFICATION 4: Communication Architecture")
     try:
         from src.communication import P2PCommunicationManager, HierarchicalWorkflowOrchestrator
         
@@ -127,22 +127,22 @@ def verify_agentweaver_components():
         
         for manager in [p2p, hierarchical]:
             manager_type = manager.__class__.__name__
-            print(f"   🔍 Checking {manager_type}:")
+            print(f"   Checking {manager_type}:")
             
             for method in comm_methods:
                 if hasattr(manager, method):
-                    print(f"     ✅ Has {method} method")
+                    print(f"     OK Has {method} method")
                 else:
-                    print(f"     ⚠️ Missing {method} method")
+                    print(f"     WARNING Missing {method} method")
         
         verification_results['communication_arch'] = True
         
     except Exception as e:
-        print(f"   ❌ Communication architecture verification failed: {e}")
+        print(f"   ERROR Communication architecture verification failed: {e}")
         verification_results['communication_arch'] = False
     
     # 5. Verify Parallel Execution Components
-    print("\n🔧 VERIFICATION 5: Parallel Execution Components")
+    print("\nVERIFICATION 5: Parallel Execution Components")
     try:
         from src.orchestration import ParallelForkNode, ParallelWorkerNode, ParallelAggregatorNode
         
@@ -164,23 +164,23 @@ def verify_agentweaver_components():
         ]
         
         for component, name in components:
-            print(f"   🔍 Checking {name}:")
+            print(f"   Checking {name}:")
             required_methods = parallel_methods.get(name, [])
             
             for method in required_methods:
                 if hasattr(component, method):
-                    print(f"     ✅ Has {method} method")
+                    print(f"     OK Has {method} method")
                 else:
-                    print(f"     ⚠️ Missing {method} method")
+                    print(f"     WARNING Missing {method} method")
         
         verification_results['parallel_execution'] = True
         
     except Exception as e:
-        print(f"   ❌ Parallel execution verification failed: {e}")
+        print(f"   ERROR Parallel execution verification failed: {e}")
         verification_results['parallel_execution'] = False
     
     # 6. Verify Workflow Orchestration
-    print("\n🔧 VERIFICATION 6: Workflow Orchestration")
+    print("\nVERIFICATION 6: Workflow Orchestration")
     try:
         from src.linear_workflow import LinearWorkflowOrchestrator
         from src.conditional_workflow import ConditionalWorkflowOrchestrator
@@ -193,29 +193,29 @@ def verify_agentweaver_components():
         
         for orchestrator in [linear, conditional]:
             orchestrator_type = orchestrator.__class__.__name__
-            print(f"   🔍 Checking {orchestrator_type}:")
+            print(f"   Checking {orchestrator_type}:")
             
             for method in workflow_methods:
                 if hasattr(orchestrator, method):
-                    print(f"     ✅ Has {method} method")
+                    print(f"     OK Has {method} method")
                 else:
-                    print(f"     ⚠️ Missing {method} method")
+                    print(f"     WARNING Missing {method} method")
         
         verification_results['workflow_orchestration'] = True
         
     except Exception as e:
-        print(f"   ❌ Workflow orchestration verification failed: {e}")
+        print(f"   ERROR Workflow orchestration verification failed: {e}")
         verification_results['workflow_orchestration'] = False
     
     # Results Summary
     print("\n" + "=" * 50)
-    print("🔍 DEEP VERIFICATION RESULTS")
+    print("DEEP VERIFICATION RESULTS")
     print("=" * 50)
     
     total_verifications = len(verification_results)
     passed_verifications = sum(verification_results.values())
     
-    print(f"\n📊 VERIFICATION RESULTS: {passed_verifications}/{total_verifications} PASSED")
+    print(f"\nVERIFICATION RESULTS: {passed_verifications}/{total_verifications} PASSED")
     
     verification_descriptions = {
         'core_models': 'Core Models Functionality',
@@ -226,23 +226,23 @@ def verify_agentweaver_components():
         'workflow_orchestration': 'Workflow Orchestration'
     }
     
-    print("\n📋 DETAILED VERIFICATION:")
+    print("\nDETAILED VERIFICATION:")
     for verify_key, passed in verification_results.items():
-        status = "✅ VERIFIED" if passed else "❌ FAILED"
+        status = "OK VERIFIED" if passed else "ERROR FAILED"
         description = verification_descriptions.get(verify_key, verify_key)
         print(f"{status}: {description}")
     
     success_rate = (passed_verifications / total_verifications) * 100
-    print(f"\n🏆 VERIFICATION SUCCESS RATE: {success_rate:.1f}%")
+    print(f"\nVERIFICATION SUCCESS RATE: {success_rate:.1f}%")
     
     if success_rate >= 90:
-        print("🚀 EXCELLENT: Components are fully functional!")
-        print("✅ Live test results are ACCURATE and RELIABLE")
+        print("EXCELLENT: Components are fully functional!")
+        print("OK Live test results are ACCURATE and RELIABLE")
     elif success_rate >= 75:
-        print("✅ GOOD: Most components are functional")
-        print("✅ Live test results are mostly accurate")
+        print("OK GOOD: Most components are functional")
+        print("OK Live test results are mostly accurate")
     else:
-        print("⚠️ ATTENTION: Some components need deeper implementation")
+        print("WARNING ATTENTION: Some components need deeper implementation")
     
     return passed_verifications, total_verifications
 
@@ -253,10 +253,10 @@ if __name__ == "__main__":
     passed, total = verify_agentweaver_components()
     
     execution_time = time.time() - start_time
-    print(f"\n⚡ Verification time: {execution_time:.2f} seconds")
-    print(f"📊 Final verification: {passed}/{total} ({(passed/total)*100:.1f}% verified)")
+    print(f"\nVerification time: {execution_time:.2f} seconds")
+    print(f"Final verification: {passed}/{total} ({(passed/total)*100:.1f}% verified)")
     
     if (passed/total) >= 0.9:
-        print("🎯 CONCLUSION: Live test is ACCURATE and components are FULLY FUNCTIONAL!")
+        print("CONCLUSION: Live test is ACCURATE and components are FULLY FUNCTIONAL!")
     elif (passed/total) >= 0.75:
-        print("🎯 CONCLUSION: Live test is largely accurate, components mostly functional")
+        print("CONCLUSION: Live test is largely accurate, components mostly functional")

@@ -7,7 +7,7 @@ This directory contains working example scripts and demonstrations for the Agent
 All demos in this directory have been tested and are working with the current system:
 
 ### Dashboard Demos (Show Real-Time Updates)
-- **`dashboard_demo.py`** - ⭐ **BEST DEMO** - Triggers multiple workflows to show live dashboard updates
+- **`dashboard_demo.py`** - **BEST DEMO** - Triggers multiple workflows to show live dashboard updates
 - **`trigger_demo.py`** - Simple single workflow trigger for testing dashboard connectivity
 
 ### Agent System Demos  
@@ -36,11 +36,11 @@ All demos in this directory have been tested and are working with the current sy
 ## What You'll See
 
 When you run `dashboard_demo.py`, your dashboard will show:
-- ✅ Agent status changes (idle → busy → idle)  
-- ✅ Workflow progress bars moving
-- ✅ Real-time WebSocket connectivity status
-- ✅ Live agent data replacing mock data
-- ✅ Multiple workflows executing in sequence
+- Agent status changes (idle → busy → idle)  
+- Workflow progress bars moving
+- Real-time WebSocket connectivity status
+- Live agent data replacing mock data
+- Multiple workflows executing in sequence
 
 ## Requirements
 
